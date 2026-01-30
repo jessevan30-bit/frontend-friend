@@ -29,9 +29,9 @@ const timeSlots = [
 ];
 
 const statusColors: Record<AppointmentStatus, string> = {
-  pending: 'bg-secondary border-secondary-foreground/20',
+  pending: 'bg-secondary border-border',
   confirmed: 'bg-primary text-primary-foreground',
-  in_progress: 'bg-accent border-2 border-border',
+  in_progress: 'bg-accent border-2 border-primary',
   completed: 'bg-muted text-muted-foreground',
   cancelled: 'bg-destructive/20 text-destructive',
   no_show: 'bg-destructive/10 text-destructive',
@@ -68,19 +68,19 @@ export default function AppointmentsPage() {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
+          <div className="animate-fade-in-left">
             <h1 className="text-2xl font-bold">Rendez-vous</h1>
             <p className="text-muted-foreground">Planification et gestion des RDV</p>
           </div>
           
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
+              <Button className="gap-2 shadow-md hover:shadow-glow-primary transition-all duration-300 hover:scale-105">
                 <Plus className="w-4 h-4" />
                 Nouveau RDV
               </Button>
             </DialogTrigger>
-            <DialogContent className="border-2 border-border">
+            <DialogContent className="border border-border rounded-xl animate-scale-in">
               <DialogHeader>
                 <DialogTitle>Nouveau rendez-vous</DialogTitle>
               </DialogHeader>
@@ -149,7 +149,7 @@ export default function AppointmentsPage() {
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Annuler
                   </Button>
-                  <Button type="submit">Créer le RDV</Button>
+                  <Button type="submit" className="shadow-md hover:shadow-glow-primary">Créer le RDV</Button>
                 </div>
               </form>
             </DialogContent>
@@ -157,13 +157,13 @@ export default function AppointmentsPage() {
         </div>
 
         {/* Date navigation */}
-        <div className="flex items-center justify-between bg-card border-2 border-border p-4">
-          <Button variant="outline" size="icon" onClick={() => navigateDate(-1)}>
+        <div className="flex items-center justify-between bg-card border border-border rounded-xl p-4 shadow-sm animate-fade-in">
+          <Button variant="outline" size="icon" onClick={() => navigateDate(-1)} className="hover:scale-105 transition-transform">
             <ChevronLeft className="w-4 h-4" />
           </Button>
           
           <div className="text-center">
-            <p className="text-xl font-bold">
+            <p className="text-xl font-bold capitalize">
               {currentDate.toLocaleDateString('fr-FR', { 
                 weekday: 'long', 
                 day: 'numeric', 
@@ -176,17 +176,18 @@ export default function AppointmentsPage() {
             </p>
           </div>
           
-          <Button variant="outline" size="icon" onClick={() => navigateDate(1)}>
+          <Button variant="outline" size="icon" onClick={() => navigateDate(1)} className="hover:scale-105 transition-transform">
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
 
         {/* Employee filter */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 animate-fade-in-up">
           <Button 
             variant={selectedEmployee === 'all' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setSelectedEmployee('all')}
+            className="transition-all duration-200 hover:scale-105"
           >
             Tous les coiffeurs
           </Button>
@@ -196,6 +197,7 @@ export default function AppointmentsPage() {
               variant={selectedEmployee === emp.id ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSelectedEmployee(emp.id)}
+              className="transition-all duration-200 hover:scale-105"
             >
               {emp.firstName}
             </Button>
@@ -203,19 +205,20 @@ export default function AppointmentsPage() {
         </div>
 
         {/* Calendar grid */}
-        <div className="overflow-x-auto">
-          <div className="min-w-[600px]">
+        <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
+          <div className="min-w-[600px] p-4">
             {/* Header */}
             <div className="grid gap-2" style={{ gridTemplateColumns: `80px repeat(${displayedEmployees.length}, 1fr)` }}>
               <div className="p-2 font-medium text-muted-foreground text-sm">Heure</div>
-              {displayedEmployees.map(emp => (
+              {displayedEmployees.map((emp, index) => (
                 <div 
                   key={emp.id} 
-                  className="p-3 bg-card border-2 border-border text-center"
+                  className="p-3 bg-secondary rounded-lg text-center animate-fade-in-down"
+                  style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <div 
-                    className="w-10 h-10 mx-auto mb-2 flex items-center justify-center font-bold text-primary-foreground"
-                    style={{ backgroundColor: emp.color }}
+                    className="w-12 h-12 mx-auto mb-2 flex items-center justify-center font-bold rounded-full shadow-md"
+                    style={{ backgroundColor: emp.color, color: 'white' }}
                   >
                     {emp.firstName[0]}{emp.lastName[0]}
                   </div>
@@ -225,12 +228,15 @@ export default function AppointmentsPage() {
             </div>
 
             {/* Time slots */}
-            <div className="mt-2 space-y-1">
-              {timeSlots.map(time => (
+            <div className="mt-4 space-y-1">
+              {timeSlots.map((time, timeIndex) => (
                 <div 
                   key={time}
-                  className="grid gap-2"
-                  style={{ gridTemplateColumns: `80px repeat(${displayedEmployees.length}, 1fr)` }}
+                  className="grid gap-2 animate-fade-in"
+                  style={{ 
+                    gridTemplateColumns: `80px repeat(${displayedEmployees.length}, 1fr)`,
+                    animationDelay: `${timeIndex * 30}ms`
+                  }}
                 >
                   <div className="p-2 text-sm font-mono text-muted-foreground flex items-center">
                     {time}
@@ -244,10 +250,10 @@ export default function AppointmentsPage() {
                       <div 
                         key={`${emp.id}-${time}`}
                         className={cn(
-                          "min-h-[60px] border-2 border-border p-2 transition-all cursor-pointer",
+                          "min-h-[60px] border border-border rounded-lg p-2 transition-all duration-200 cursor-pointer group",
                           appointment 
                             ? statusColors[appointment.status]
-                            : "bg-card hover:bg-accent"
+                            : "bg-background hover:bg-secondary hover:shadow-sm hover:scale-[1.02]"
                         )}
                       >
                         {appointment && client && service && (

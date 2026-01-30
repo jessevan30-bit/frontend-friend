@@ -5,148 +5,150 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/* African-Inspired Modern Design System
+   Colors inspired by African landscapes: terracotta, gold, savanna, sunset
 */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
+    /* Warm cream background inspired by African sand */
+    --background: 35 30% 97%;
+    --foreground: 25 40% 15%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
+    /* Card with warm undertone */
+    --card: 35 25% 99%;
+    --card-foreground: 25 40% 15%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
+    --popover: 35 25% 99%;
+    --popover-foreground: 25 40% 15%;
 
-    --primary: 0 0% 0%;
-    --primary-foreground: 0 0% 100%;
+    /* Primary: Rich Terracotta */
+    --primary: 15 70% 45%;
+    --primary-foreground: 35 30% 97%;
 
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 0%;
+    /* Secondary: Warm Sand */
+    --secondary: 35 35% 92%;
+    --secondary-foreground: 25 40% 20%;
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
+    /* Muted: Soft Earth */
+    --muted: 30 20% 94%;
+    --muted-foreground: 25 20% 45%;
 
-    --accent: 0 0% 90%;
-    --accent-foreground: 0 0% 0%;
+    /* Accent: African Gold */
+    --accent: 42 85% 55%;
+    --accent-foreground: 25 40% 15%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    /* Destructive: Desert Red */
+    --destructive: 5 75% 50%;
+    --destructive-foreground: 35 30% 97%;
 
-    --border: 0 0% 0%;
-    --input: 0 0% 0%;
-    --ring: 0 0% 0%;
+    /* Borders: Warm brown */
+    --border: 25 25% 80%;
+    --input: 25 25% 75%;
+    --ring: 15 70% 45%;
 
-    --radius: 0rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Sidebar: Deep Earth */
+    --sidebar-background: 25 35% 12%;
+    --sidebar-foreground: 35 25% 95%;
+    --sidebar-primary: 42 85% 55%;
+    --sidebar-primary-foreground: 25 40% 15%;
+    --sidebar-accent: 25 30% 20%;
+    --sidebar-accent-foreground: 35 25% 95%;
+    --sidebar-border: 25 25% 25%;
+    --sidebar-ring: 42 85% 55%;
+    --sidebar: 25 35% 12%;
 
-    --sidebar-foreground: 0 0% 0%;
+    /* Chart colors: African sunset palette */
+    --chart-1: 15 70% 50%;
+    --chart-2: 42 85% 55%;
+    --chart-3: 140 40% 35%;
+    --chart-4: 25 60% 40%;
+    --chart-5: 350 65% 50%;
 
-    --sidebar-primary: 0 0% 0%;
-
-    --sidebar-primary-foreground: 0 0% 100%;
-
-    --sidebar-accent: 0 0% 90%;
-
-    --sidebar-accent-foreground: 0 0% 0%;
-
-    --sidebar-border: 0 0% 0%;
-
-    --sidebar-ring: 0 0% 0%;
-
-    --chart-1: 12 76% 61%;
-
-    --chart-2: 173 58% 39%;
-
-    --chart-3: 197 37% 24%;
-
-    --chart-4: 43 74% 66%;
-
-    --chart-5: 27 87% 67%;
-
-    --sidebar: 0 0% 98%;
-
+    /* Typography */
     --font-sans: 'Space Grotesk', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
-
-    --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
-
+    --font-serif: 'Lora', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
     --font-mono: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 
-    --shadow-2xs: 1px 1px 0px 0px #000000;
+    /* African-inspired shadows with warm tones */
+    --shadow-2xs: 0 1px 2px 0 hsla(25, 40%, 20%, 0.05);
+    --shadow-xs: 0 1px 3px 0 hsla(25, 40%, 20%, 0.1), 0 1px 2px -1px hsla(25, 40%, 20%, 0.1);
+    --shadow-sm: 0 2px 4px 0 hsla(25, 40%, 20%, 0.1), 0 1px 2px -1px hsla(25, 40%, 20%, 0.1);
+    --shadow: 0 4px 6px -1px hsla(25, 40%, 20%, 0.1), 0 2px 4px -2px hsla(25, 40%, 20%, 0.1);
+    --shadow-md: 0 6px 12px -2px hsla(25, 40%, 20%, 0.12), 0 3px 6px -3px hsla(25, 40%, 20%, 0.1);
+    --shadow-lg: 0 10px 20px -3px hsla(25, 40%, 20%, 0.15), 0 4px 8px -4px hsla(25, 40%, 20%, 0.1);
+    --shadow-xl: 0 20px 30px -5px hsla(25, 40%, 20%, 0.2), 0 8px 12px -6px hsla(25, 40%, 20%, 0.1);
+    --shadow-2xl: 0 25px 50px -12px hsla(25, 40%, 20%, 0.25);
 
-    --shadow-xs: 2px 2px 0px 0px #000000;
-
-    --shadow-sm: 3px 3px 0px 0px #000000;
-
-    --shadow: 5px 5px 0px 0px #000000;
-
-    --shadow-md: 8px 8px 0px 0px #000000;
-
-    --shadow-lg: 12px 12px 0px 0px #000000;
-
-    --shadow-xl: 16px 16px 0px 0px #000000;
-
-    --shadow-2xl: 24px 24px 0px 0px #000000;
+    /* Glow effects for accent elements */
+    --shadow-glow: 0 0 20px hsla(42, 85%, 55%, 0.3);
+    --shadow-glow-primary: 0 0 25px hsla(15, 70%, 45%, 0.25);
 
     --tracking-normal: 0em;
-
     --spacing: 0.25rem;
   }
 
   .dark {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
+    /* Deep African night */
+    --background: 25 30% 8%;
+    --foreground: 35 25% 95%;
 
-    --card: 0 0% 0%;
-    --card-foreground: 0 0% 100%;
+    --card: 25 28% 12%;
+    --card-foreground: 35 25% 95%;
 
-    --popover: 0 0% 0%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 25 28% 12%;
+    --popover-foreground: 35 25% 95%;
 
-    --primary: 0 0% 100%;
-    --primary-foreground: 0 0% 0%;
+    /* Primary: Warm Terracotta */
+    --primary: 15 65% 55%;
+    --primary-foreground: 25 30% 8%;
 
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 100%;
+    /* Secondary: Deep Earth */
+    --secondary: 25 25% 18%;
+    --secondary-foreground: 35 25% 90%;
 
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 65%;
+    --muted: 25 20% 18%;
+    --muted-foreground: 35 15% 60%;
 
-    --accent: 0 0% 15%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent: Bright Gold */
+    --accent: 42 90% 50%;
+    --accent-foreground: 25 30% 8%;
 
-    --destructive: 0 62% 30%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 5 70% 45%;
+    --destructive-foreground: 35 25% 95%;
 
-    --border: 0 0% 100%;
-    --input: 0 0% 100%;
-    --ring: 0 0% 100%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 0 0% 15%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 0% 100%;
-    --sidebar-ring: 0 0% 100%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar: 0 0% 5%;
-    --radius: 0rem;
-    --shadow-2xs: 1px 1px 0px 0px #ffffff;
-    --shadow-xs: 2px 2px 0px 0px #ffffff;
-    --shadow-sm: 3px 3px 0px 0px #ffffff;
-    --shadow: 5px 5px 0px 0px #ffffff;
-    --shadow-md: 8px 8px 0px 0px #ffffff;
-    --shadow-lg: 12px 12px 0px 0px #ffffff;
-    --shadow-xl: 16px 16px 0px 0px #ffffff;
-    --shadow-2xl: 24px 24px 0px 0px #ffffff;
+    --border: 25 20% 25%;
+    --input: 25 20% 30%;
+    --ring: 42 90% 50%;
+
+    --sidebar-background: 25 35% 6%;
+    --sidebar-foreground: 35 25% 95%;
+    --sidebar-primary: 42 90% 50%;
+    --sidebar-primary-foreground: 25 30% 8%;
+    --sidebar-accent: 25 25% 15%;
+    --sidebar-accent-foreground: 35 25% 95%;
+    --sidebar-border: 25 20% 20%;
+    --sidebar-ring: 42 90% 50%;
+    --sidebar: 25 35% 6%;
+
+    --chart-1: 15 65% 55%;
+    --chart-2: 42 90% 55%;
+    --chart-3: 140 50% 45%;
+    --chart-4: 25 55% 50%;
+    --chart-5: 350 60% 55%;
+
+    --shadow-2xs: 0 1px 2px 0 hsla(0, 0%, 0%, 0.2);
+    --shadow-xs: 0 1px 3px 0 hsla(0, 0%, 0%, 0.3);
+    --shadow-sm: 0 2px 4px 0 hsla(0, 0%, 0%, 0.3);
+    --shadow: 0 4px 6px -1px hsla(0, 0%, 0%, 0.35);
+    --shadow-md: 0 6px 12px -2px hsla(0, 0%, 0%, 0.4);
+    --shadow-lg: 0 10px 20px -3px hsla(0, 0%, 0%, 0.45);
+    --shadow-xl: 0 20px 30px -5px hsla(0, 0%, 0%, 0.5);
+    --shadow-2xl: 0 25px 50px -12px hsla(0, 0%, 0%, 0.6);
+    --shadow-glow: 0 0 30px hsla(42, 90%, 50%, 0.4);
+    --shadow-glow-primary: 0 0 30px hsla(15, 65%, 55%, 0.35);
   }
 }
 
@@ -157,5 +159,71 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  /* African pattern overlays */
+  .pattern-kente {
+    background-image: 
+      linear-gradient(45deg, hsla(42, 85%, 55%, 0.1) 25%, transparent 25%),
+      linear-gradient(-45deg, hsla(15, 70%, 45%, 0.1) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, hsla(42, 85%, 55%, 0.1) 75%),
+      linear-gradient(-45deg, transparent 75%, hsla(15, 70%, 45%, 0.1) 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  }
+
+  .pattern-mudcloth {
+    background-image: 
+      radial-gradient(circle at 25% 25%, hsla(25, 40%, 20%, 0.05) 2px, transparent 2px),
+      radial-gradient(circle at 75% 75%, hsla(25, 40%, 20%, 0.05) 2px, transparent 2px);
+    background-size: 24px 24px;
+  }
+
+  /* Gradient backgrounds */
+  .gradient-sunset {
+    background: linear-gradient(135deg, hsl(15, 70%, 45%) 0%, hsl(42, 85%, 55%) 50%, hsl(25, 60%, 40%) 100%);
+  }
+
+  .gradient-savanna {
+    background: linear-gradient(180deg, hsl(35, 30%, 97%) 0%, hsl(35, 35%, 92%) 100%);
+  }
+
+  .gradient-night {
+    background: linear-gradient(180deg, hsl(25, 30%, 8%) 0%, hsl(25, 35%, 15%) 100%);
+  }
+
+  /* Glass effect with warm tones */
+  .glass {
+    background: hsla(35, 25%, 99%, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .dark .glass {
+    background: hsla(25, 28%, 12%, 0.8);
+  }
+
+  /* Shimmer animation for loading states */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      hsla(35, 25%, 90%, 0) 0%,
+      hsla(42, 85%, 55%, 0.15) 50%,
+      hsla(35, 25%, 90%, 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
   }
 }
