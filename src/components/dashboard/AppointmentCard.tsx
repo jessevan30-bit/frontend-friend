@@ -1,7 +1,8 @@
 import { Clock, User, Scissors } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Appointment, AppointmentStatus } from '@/types';
-import { getClientById, getEmployeeById, getServiceById } from '@/data/mockData';
+import { getEmployeeById, getServiceById } from '@/data/mockData';
+import { useAppointments } from '@/contexts/AppointmentsContext';
 
 interface AppointmentCardProps {
   appointment: Appointment;
@@ -18,6 +19,7 @@ const statusConfig: Record<AppointmentStatus, { label: string; className: string
 };
 
 export function AppointmentCard({ appointment, onClick }: AppointmentCardProps) {
+  const { getClientById } = useAppointments();
   const client = getClientById(appointment.clientId);
   const employee = getEmployeeById(appointment.employeeId);
   const service = getServiceById(appointment.serviceId);

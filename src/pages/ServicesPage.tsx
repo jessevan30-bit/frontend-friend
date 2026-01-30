@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Plus, Clock, Euro, MoreHorizontal, Pencil, Trash2, Scissors } from 'lucide-react';
+import { Plus, Scissors } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { mockServices, mockCategories, getCategoryById } from '@/data/mockData';
+import { ServiceCard } from '@/components/services';
 import { 
   Dialog, 
   DialogContent, 
@@ -58,7 +59,7 @@ export default function ServicesPage() {
               <form className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nom du service</Label>
-                  <Input id="name" placeholder="Ex: Coupe Homme" />
+                  <Input id="name" placeholder="Ex: Coupe Homme, Tresses Africaines" />
                 </div>
                 <div className="space-y-2">
                   <Label>Catégorie</Label>
@@ -79,13 +80,13 @@ export default function ServicesPage() {
                     <Input id="duration" type="number" placeholder="30" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="price">Prix (€)</Label>
+                    <Label htmlFor="price">Prix (FCFA)</Label>
                     <Input id="price" type="number" placeholder="25" />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="description">Description (optionnel)</Label>
-                  <Input id="description" placeholder="Description du service..." />
+                  <Input id="description" placeholder="Décrivez le service en détail..." />
                 </div>
                 <div className="flex justify-end gap-3">
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
@@ -127,66 +128,21 @@ export default function ServicesPage() {
             const category = getCategoryById(service.categoryId);
             
             return (
-              <div 
+              <ServiceCard
                 key={service.id}
-                className="bg-card border border-border rounded-xl p-5 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group animate-fade-in-up"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <span 
-                      className="inline-block px-3 py-1 text-xs font-medium mb-2 rounded-full shadow-sm"
-                      style={{ 
-                        backgroundColor: category?.color || 'hsl(var(--muted))',
-                        color: 'white'
-                      }}
-                    >
-                      {category?.name || 'Sans catégorie'}
-                    </span>
-                    <h3 className="font-bold text-lg group-hover:text-primary transition-colors">{service.name}</h3>
-                    {service.description && (
-                      <p className="text-sm text-muted-foreground mt-1">{service.description}</p>
-                    )}
-                  </div>
-                  <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                    <MoreHorizontal className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                <div className="flex items-center gap-6 mb-4">
-                  <div className="flex items-center gap-2 group-hover:translate-x-1 transition-transform">
-                    <div className="p-1.5 bg-secondary rounded-lg">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                    <span className="font-mono">{service.duration} min</span>
-                  </div>
-                  <div className="flex items-center gap-2 group-hover:translate-x-1 transition-transform delay-75">
-                    <div className="p-1.5 bg-accent/30 rounded-lg">
-                      <Euro className="w-4 h-4 text-accent-foreground" />
-                    </div>
-                    <span className="font-bold text-lg text-primary">{service.price}€</span>
-                  </div>
-                </div>
-
-                <div className={cn(
-                  "inline-block px-3 py-1 text-xs font-medium rounded-full",
-                  service.isActive 
-                    ? "bg-primary/10 text-primary" 
-                    : "bg-muted text-muted-foreground"
-                )}>
-                  {service.isActive ? '● Actif' : '○ Inactif'}
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-border flex gap-2">
-                  <Button variant="outline" size="sm" className="flex-1 gap-2 hover:scale-105 transition-transform">
-                    <Pencil className="w-3 h-3" />
-                    Modifier
-                  </Button>
-                  <Button variant="outline" size="sm" className="hover:scale-105 transition-transform hover:bg-destructive/10 hover:text-destructive hover:border-destructive">
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                </div>
-              </div>
+                service={service}
+                category={category}
+                variant="admin"
+                index={index}
+                onEdit={(service) => {
+                  // TODO: Implémenter l'édition
+                  console.log('Éditer service:', service);
+                }}
+                onDelete={(service) => {
+                  // TODO: Implémenter la suppression
+                  console.log('Supprimer service:', service);
+                }}
+              />
             );
           })}
         </div>

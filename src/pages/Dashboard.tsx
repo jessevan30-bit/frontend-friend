@@ -1,12 +1,22 @@
-import { Calendar, Euro, Users, TrendingUp, Clock, UserPlus, Sparkles } from 'lucide-react';
+import { Calendar, Banknote, Users, TrendingUp, Clock, UserPlus, Sparkles } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { AppointmentCard } from '@/components/dashboard/AppointmentCard';
-import { mockDashboardStats, mockAppointments, mockEmployees } from '@/data/mockData';
+import { mockDashboardStats, mockEmployees } from '@/data/mockData';
+import { useAppointments } from '@/contexts/AppointmentsContext';
 import heroImage from '@/assets/hero-salon.jpg';
+import { 
+  SankofaSymbol, 
+  GyeNyameSymbol, 
+  AkomaSymbol, 
+  GabonMaskSymbol,
+  AfricanStarSymbol,
+  AfricanSymbolsDecoration 
+} from '@/components/african-symbols/AfricanSymbols';
 
 export default function Dashboard() {
-  const todayAppointments = mockAppointments.filter(apt => apt.date === '2026-01-30');
+  const { appointments } = useAppointments();
+  const todayAppointments = appointments.filter(apt => apt.date === '2026-01-30');
 
   return (
     <DashboardLayout>
@@ -21,27 +31,43 @@ export default function Dashboard() {
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 via-foreground/50 to-transparent" />
           
-          {/* Decorative pattern */}
-          <div className="absolute inset-0 pattern-kente opacity-20" />
+          {/* Decorative pattern avec couleurs gabonaises */}
+          <div className="absolute inset-0 pattern-gabon opacity-20" />
+          
+          {/* Symboles africains décoratifs flottants */}
+          <div className="absolute top-4 right-4 opacity-30 animate-float">
+            <AfricanStarSymbol size={40} animated={true} color="gradient" />
+          </div>
+          <div className="absolute bottom-8 right-8 opacity-20 animate-float" style={{ animationDelay: '1s' }}>
+            <GyeNyameSymbol size={32} animated={true} color="gradient" />
+          </div>
+          <div className="absolute top-1/2 right-1/4 opacity-25 animate-float" style={{ animationDelay: '2s' }}>
+            <SankofaSymbol size={28} animated={true} color="gradient" />
+          </div>
           
           {/* Content */}
           <div className="absolute inset-0 flex items-center px-8 lg:px-12">
             <div className="text-background max-w-lg">
               <div className="flex items-center gap-2 mb-3 animate-fade-in-down">
+                <div className="flex items-center gap-1">
+                  <GabonMaskSymbol size={20} animated={true} color="yellow" />
                 <Sparkles className="w-5 h-5 text-accent animate-pulse-glow" />
+                </div>
                 <span className="text-sm font-medium uppercase tracking-widest opacity-90">Bienvenue</span>
               </div>
-              <h1 className="text-4xl lg:text-5xl font-bold mb-3 animate-fade-in-left">
+              <h1 className="text-4xl lg:text-5xl font-bold mb-3 animate-fade-in-left flex items-center gap-3">
+                <AkomaSymbol size={48} animated={true} color="gradient" className="hidden lg:block" />
                 Votre Salon
               </h1>
-              <p className="text-lg opacity-90 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+              <p className="text-lg opacity-90 animate-fade-in-up flex items-center gap-2" style={{ animationDelay: '200ms' }}>
+                <SankofaSymbol size={20} animated={true} color="green" />
                 Gérez votre activité en toute simplicité avec style
               </p>
             </div>
           </div>
           
-          {/* Decorative accent */}
-          <div className="absolute bottom-0 left-0 right-0 h-1 gradient-sunset" />
+          {/* Decorative accent avec gradient gabonais */}
+          <div className="absolute bottom-0 left-0 right-0 h-1 gradient-gabon-horizontal" />
         </div>
 
         {/* Stats grid with staggered animation */}
@@ -49,39 +75,81 @@ export default function Dashboard() {
           <StatCard
             title="RDV aujourd'hui"
             value={mockDashboardStats.todayAppointments}
-            icon={<Calendar className="w-5 h-5 text-primary" />}
+            icon={
+              <div className="relative">
+                <Calendar className="w-5 h-5 text-primary" />
+                <div className="absolute -top-1 -right-1">
+                  <AfricanStarSymbol size={12} animated={true} color="yellow" />
+                </div>
+              </div>
+            }
             delay={0}
           />
           <StatCard
             title="CA aujourd'hui"
-            value={`${mockDashboardStats.todayRevenue}€`}
-            icon={<Euro className="w-5 h-5 text-primary" />}
+            value={`${mockDashboardStats.todayRevenue} FCFA`}
+            icon={
+              <div className="relative">
+                <Banknote className="w-5 h-5 text-primary" />
+                <div className="absolute -top-1 -right-1">
+                  <AkomaSymbol size={12} animated={true} color="green" />
+                </div>
+              </div>
+            }
             delay={50}
           />
           <StatCard
             title="CA semaine"
-            value={`${mockDashboardStats.weeklyRevenue}€`}
-            icon={<TrendingUp className="w-5 h-5 text-primary" />}
+            value={`${mockDashboardStats.weeklyRevenue} FCFA`}
+            icon={
+              <div className="relative">
+                <TrendingUp className="w-5 h-5 text-primary" />
+                <div className="absolute -top-1 -right-1">
+                  <GyeNyameSymbol size={12} animated={true} color="blue" />
+                </div>
+              </div>
+            }
             trend={{ value: 12, isPositive: true }}
             delay={100}
           />
           <StatCard
             title="CA mois"
-            value={`${mockDashboardStats.monthlyRevenue.toLocaleString()}€`}
-            icon={<Euro className="w-5 h-5 text-primary" />}
+            value={`${mockDashboardStats.monthlyRevenue.toLocaleString()} FCFA`}
+            icon={
+              <div className="relative">
+                <Banknote className="w-5 h-5 text-primary" />
+                <div className="absolute -top-1 -right-1">
+                  <SankofaSymbol size={12} animated={true} color="gradient" />
+                </div>
+              </div>
+            }
             delay={150}
           />
           <StatCard
             title="Total clients"
             value={mockDashboardStats.totalClients}
-            icon={<Users className="w-5 h-5 text-primary" />}
+            icon={
+              <div className="relative">
+                <Users className="w-5 h-5 text-primary" />
+                <div className="absolute -top-1 -right-1">
+                  <GabonMaskSymbol size={12} animated={true} color="yellow" />
+                </div>
+              </div>
+            }
             delay={200}
           />
           <StatCard
             title="Nouveaux clients"
             value={mockDashboardStats.newClientsThisMonth}
             subtitle="ce mois"
-            icon={<UserPlus className="w-5 h-5 text-primary" />}
+            icon={
+              <div className="relative">
+                <UserPlus className="w-5 h-5 text-primary" />
+                <div className="absolute -top-1 -right-1">
+                  <AfricanStarSymbol size={12} animated={true} color="gradient" />
+                </div>
+              </div>
+            }
             delay={250}
           />
         </div>

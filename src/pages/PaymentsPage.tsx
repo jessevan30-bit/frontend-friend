@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Euro, CreditCard, Banknote, Smartphone, TrendingUp, Search, Filter, Receipt } from 'lucide-react';
+import { CreditCard, Banknote, Smartphone, TrendingUp, Search, Filter, Receipt, Wallet } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { mockPayments, mockDashboardStats, getClientById } from '@/data/mockData';
+import { mockPayments, mockDashboardStats } from '@/data/mockData';
+import { useAppointments } from '@/contexts/AppointmentsContext';
 import { PaymentMethod, PaymentStatus } from '@/types';
 import { cn } from '@/lib/utils';
 
@@ -11,7 +12,9 @@ const methodConfig: Record<PaymentMethod, { label: string; icon: React.ReactNode
   cash: { label: 'Espèces', icon: <Banknote className="w-4 h-4" /> },
   card: { label: 'Carte', icon: <CreditCard className="w-4 h-4" /> },
   mobile: { label: 'Mobile', icon: <Smartphone className="w-4 h-4" /> },
-  online: { label: 'En ligne', icon: <Euro className="w-4 h-4" /> },
+  online: { label: 'En ligne', icon: <Wallet className="w-4 h-4" /> },
+  airtel_money: { label: 'Airtel Money', icon: <Smartphone className="w-4 h-4" /> },
+  cash_on_arrival: { label: 'À l\'arrivée', icon: <CreditCard className="w-4 h-4" /> },
 };
 
 const statusConfig: Record<PaymentStatus, { label: string; className: string }> = {
@@ -21,6 +24,7 @@ const statusConfig: Record<PaymentStatus, { label: string; className: string }> 
 };
 
 export default function PaymentsPage() {
+  const { getClientById } = useAppointments();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMethod, setSelectedMethod] = useState<string>('all');
 
@@ -52,9 +56,9 @@ export default function PaymentsPage() {
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: "Aujourd'hui", value: mockDashboardStats.todayRevenue, icon: Euro, delay: 0 },
+            { label: "Aujourd'hui", value: mockDashboardStats.todayRevenue, icon: Banknote, delay: 0 },
             { label: "Cette semaine", value: mockDashboardStats.weeklyRevenue, icon: TrendingUp, delay: 50 },
-            { label: "Ce mois", value: mockDashboardStats.monthlyRevenue.toLocaleString(), icon: Euro, delay: 100 },
+            { label: "Ce mois", value: mockDashboardStats.monthlyRevenue.toLocaleString(), icon: Banknote, delay: 100 },
           ].map((stat, index) => (
             <div 
               key={stat.label}
@@ -67,7 +71,7 @@ export default function PaymentsPage() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">{stat.label}</p>
-                  <p className="text-2xl font-bold">{stat.value}€</p>
+                  <p className="text-2xl font-bold">{stat.value} FCFA</p>
                 </div>
               </div>
             </div>
@@ -83,7 +87,7 @@ export default function PaymentsPage() {
               </div>
               <div>
                 <p className="text-sm opacity-80">Total filtré</p>
-                <p className="text-2xl font-bold">{totalRevenue}€</p>
+                <p className="text-2xl font-bold">{totalRevenue} FCFA</p>
               </div>
             </div>
           </div>
@@ -175,7 +179,7 @@ export default function PaymentsPage() {
                         </span>
                       </td>
                       <td className="p-4 text-right font-bold font-mono text-lg text-primary">
-                        {payment.amount}€
+                        {payment.amount} FCFA
                       </td>
                     </tr>
                   );

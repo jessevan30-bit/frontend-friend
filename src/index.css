@@ -67,6 +67,11 @@
     --chart-4: 25 60% 40%;
     --chart-5: 350 65% 50%;
 
+    /* Gabon flag colors (vert, jaune, bleu) */
+    --gabon-green: 150 100% 33%;  /* #00A859 */
+    --gabon-yellow: 48 98% 54%;   /* #FCD116 */
+    --gabon-blue: 150 100% 31%;   /* #009E60 */
+
     /* Typography */
     --font-sans: 'Space Grotesk', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
     --font-serif: 'Lora', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
@@ -139,6 +144,11 @@
     --chart-4: 25 55% 50%;
     --chart-5: 350 60% 55%;
 
+    /* Gabon flag colors (vert, jaune, bleu) - dark mode */
+    --gabon-green: 150 100% 38%;
+    --gabon-yellow: 48 98% 60%;
+    --gabon-blue: 150 100% 36%;
+
     --shadow-2xs: 0 1px 2px 0 hsla(0, 0%, 0%, 0.2);
     --shadow-xs: 0 1px 3px 0 hsla(0, 0%, 0%, 0.3);
     --shadow-sm: 0 2px 4px 0 hsla(0, 0%, 0%, 0.3);
@@ -186,6 +196,17 @@
     background-size: 24px 24px;
   }
 
+  /* Pattern avec couleurs gabonaises */
+  .pattern-gabon {
+    background-image: 
+      linear-gradient(45deg, hsla(var(--gabon-green), 0.1) 25%, transparent 25%),
+      linear-gradient(-45deg, hsla(var(--gabon-yellow), 0.1) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, hsla(var(--gabon-blue), 0.1) 75%),
+      linear-gradient(-45deg, transparent 75%, hsla(var(--gabon-green), 0.1) 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  }
+
   /* Gradient backgrounds */
   .gradient-sunset {
     background: linear-gradient(135deg, hsl(15, 70%, 45%) 0%, hsl(42, 85%, 55%) 50%, hsl(25, 60%, 40%) 100%);
@@ -197,6 +218,19 @@
 
   .gradient-night {
     background: linear-gradient(180deg, hsl(25, 30%, 8%) 0%, hsl(25, 35%, 15%) 100%);
+  }
+
+  /* Gabon flag gradient (vert, jaune, bleu) */
+  .gradient-gabon {
+    background: linear-gradient(135deg, hsl(var(--gabon-green)) 0%, hsl(var(--gabon-yellow)) 50%, hsl(var(--gabon-blue)) 100%);
+  }
+
+  .gradient-gabon-horizontal {
+    background: linear-gradient(90deg, hsl(var(--gabon-green)) 0%, hsl(var(--gabon-yellow)) 50%, hsl(var(--gabon-blue)) 100%);
+  }
+
+  .gradient-gabon-vertical {
+    background: linear-gradient(180deg, hsl(var(--gabon-green)) 0%, hsl(var(--gabon-yellow)) 50%, hsl(var(--gabon-blue)) 100%);
   }
 
   /* Glass effect with warm tones */
@@ -225,5 +259,27 @@
   @keyframes shimmer {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
+  }
+
+  /* Animations spécifiques pour les symboles africains */
+  .symbol-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .symbol-pulse {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  .symbol-rotate {
+    animation: spin-slow 8s linear infinite;
+  }
+
+  /* Effet de brillance pour les symboles */
+  .symbol-glow {
+    filter: drop-shadow(0 0 8px currentColor);
+  }
+
+  .symbol-glow:hover {
+    filter: drop-shadow(0 0 12px currentColor);
   }
 }

@@ -2,16 +2,17 @@ import {
   Salon, Employee, Client, Service, ServiceCategory, 
   Appointment, Payment, DashboardStats 
 } from '@/types';
+import { getServiceImage } from '@/lib/unsplash';
 
 export const mockSalon: Salon = {
   id: 'salon-1',
-  name: 'SalonPro Studio',
-  address: '123 Avenue des Champs-Élysées, Paris',
-  phone: '+33 1 23 45 67 89',
-  email: 'contact@salonpro.fr',
-  openingHours: '9h00 - 19h00',
-  currency: 'EUR',
-  timezone: 'Europe/Paris',
+  name: 'Salon Mireille',
+  address: 'Avenue Léon Mba, Libreville, Gabon',
+  phone: '+241 06 12 34 56 78',
+  email: 'contact@salon-mireille.ga',
+  openingHours: '8h00 - 18h00',
+  currency: 'XAF',
+  timezone: 'Africa/Libreville',
 };
 
 export const mockCategories: ServiceCategory[] = [
@@ -22,15 +23,15 @@ export const mockCategories: ServiceCategory[] = [
 ];
 
 export const mockServices: Service[] = [
-  { id: 'srv-1', salonId: 'salon-1', name: 'Coupe Homme', duration: 30, price: 25, categoryId: 'cat-1', isActive: true },
-  { id: 'srv-2', salonId: 'salon-1', name: 'Coupe Femme', duration: 45, price: 45, categoryId: 'cat-1', isActive: true },
-  { id: 'srv-3', salonId: 'salon-1', name: 'Coupe Enfant', duration: 20, price: 15, categoryId: 'cat-1', isActive: true },
-  { id: 'srv-4', salonId: 'salon-1', name: 'Coloration complète', duration: 90, price: 80, categoryId: 'cat-2', isActive: true },
-  { id: 'srv-5', salonId: 'salon-1', name: 'Mèches', duration: 120, price: 100, categoryId: 'cat-2', isActive: true },
-  { id: 'srv-6', salonId: 'salon-1', name: 'Balayage', duration: 150, price: 120, categoryId: 'cat-2', isActive: true },
-  { id: 'srv-7', salonId: 'salon-1', name: 'Soin profond', duration: 30, price: 35, categoryId: 'cat-3', isActive: true },
-  { id: 'srv-8', salonId: 'salon-1', name: 'Brushing', duration: 30, price: 30, categoryId: 'cat-4', isActive: true },
-  { id: 'srv-9', salonId: 'salon-1', name: 'Chignon', duration: 60, price: 60, categoryId: 'cat-4', isActive: true },
+  { id: 'srv-1', salonId: 'salon-1', name: 'Coupe Homme', description: 'Coupe moderne et tendance pour homme, réalisée par nos coiffeurs experts', duration: 30, price: 25, categoryId: 'cat-1', isActive: true, image: getServiceImage('srv-1', 800, 600) },
+  { id: 'srv-2', salonId: 'salon-1', name: 'Coupe Femme', description: 'Coupe féminine sur mesure, adaptée à votre visage et à votre style', duration: 45, price: 45, categoryId: 'cat-1', isActive: true, image: getServiceImage('srv-2', 800, 600) },
+  { id: 'srv-3', salonId: 'salon-1', name: 'Coupe Enfant', description: 'Coupe douce et adaptée pour les enfants, dans une ambiance conviviale', duration: 20, price: 15, categoryId: 'cat-1', isActive: true, image: getServiceImage('srv-3', 800, 600) },
+  { id: 'srv-4', salonId: 'salon-1', name: 'Coloration complète', description: 'Coloration complète avec produits de qualité professionnelle', duration: 90, price: 80, categoryId: 'cat-2', isActive: true, image: getServiceImage('srv-4', 800, 600) },
+  { id: 'srv-5', salonId: 'salon-1', name: 'Mèches', description: 'Mèches subtiles ou prononcées pour un effet naturel et lumineux', duration: 120, price: 100, categoryId: 'cat-2', isActive: true, image: getServiceImage('srv-5', 800, 600) },
+  { id: 'srv-6', salonId: 'salon-1', name: 'Balayage', description: 'Balayage professionnel pour un effet soleil naturel et éclatant', duration: 150, price: 120, categoryId: 'cat-2', isActive: true, image: getServiceImage('srv-6', 800, 600) },
+  { id: 'srv-7', salonId: 'salon-1', name: 'Soin profond', description: 'Soin capillaire nourrissant et réparateur pour cheveux abîmés', duration: 30, price: 35, categoryId: 'cat-3', isActive: true, image: getServiceImage('srv-7', 800, 600) },
+  { id: 'srv-8', salonId: 'salon-1', name: 'Brushing', description: 'Brushing professionnel pour un résultat lisse et brillant', duration: 30, price: 30, categoryId: 'cat-4', isActive: true, image: getServiceImage('srv-8', 800, 600) },
+  { id: 'srv-9', salonId: 'salon-1', name: 'Chignon', description: 'Chignon élégant pour toutes occasions, réalisé par nos spécialistes', duration: 60, price: 60, categoryId: 'cat-4', isActive: true, image: getServiceImage('srv-9', 800, 600) },
 ];
 
 export const mockEmployees: Employee[] = [

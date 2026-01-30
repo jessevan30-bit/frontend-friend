@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import { Plus, ChevronLeft, ChevronRight, Clock, User } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Plus, ChevronLeft, ChevronRight, Clock, User, MessageCircle, Globe, PhoneCall, UserRound } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { mockAppointments, mockEmployees, getClientById, getServiceById } from '@/data/mockData';
+import { mockEmployees, getServiceById } from '@/data/mockData';
+import { useAppointments } from '@/contexts/AppointmentsContext';
+import { GyeNyameSymbol, SankofaSymbol, AfricanStarSymbol } from '@/components/african-symbols/AfricanSymbols';
 import { 
   Dialog, 
   DialogContent, 
@@ -38,12 +41,13 @@ const statusColors: Record<AppointmentStatus, string> = {
 };
 
 export default function AppointmentsPage() {
+  const { appointments, updateAppointmentStatus, getClientById } = useAppointments();
   const [currentDate, setCurrentDate] = useState(new Date('2026-01-30'));
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<string>('all');
 
   const formattedDate = currentDate.toISOString().split('T')[0];
-  const todayAppointments = mockAppointments.filter(apt => apt.date === formattedDate);
+  const todayAppointments = appointments.filter(apt => apt.date === formattedDate);
   
   const coiffeurs = mockEmployees.filter(e => e.role === 'coiffeur');
   const displayedEmployees = selectedEmployee === 'all' 
@@ -69,8 +73,14 @@ export default function AppointmentsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="animate-fade-in-left">
-            <h1 className="text-2xl font-bold">Rendez-vous</h1>
-            <p className="text-muted-foreground">Planification et gestion des RDV</p>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <GyeNyameSymbol size={28} animated={true} color="gradient" />
+              Rendez-vous
+            </h1>
+            <p className="text-muted-foreground flex items-center gap-2">
+              <SankofaSymbol size={16} animated={true} color="blue" />
+              Planification et gestion des RDV
+            </p>
           </div>
           
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -105,9 +115,9 @@ export default function AppointmentsPage() {
                       <SelectValue placeholder="Sélectionner un service" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="srv-1">Coupe Homme - 25€</SelectItem>
-                      <SelectItem value="srv-2">Coupe Femme - 45€</SelectItem>
-                      <SelectItem value="srv-4">Coloration - 80€</SelectItem>
+                      <SelectItem value="srv-1">Coupe Homme - 25 FCFA</SelectItem>
+                      <SelectItem value="srv-2">Coupe Femme - 45 FCFA</SelectItem>
+                      <SelectItem value="srv-4">Coloration - 80 FCFA</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -173,6 +183,11 @@ export default function AppointmentsPage() {
             </p>
             <p className="text-sm text-muted-foreground">
               {todayAppointments.length} rendez-vous
+              {todayAppointments.filter(apt => apt.status === 'pending').length > 0 && (
+                <span className="ml-2 px-2 py-0.5 bg-primary/20 text-primary rounded-full text-xs font-medium">
+                  {todayAppointments.filter(apt => apt.status === 'pending').length} en attente
+                </span>
+              )}
             </p>
           </div>
           
@@ -213,14 +228,17 @@ export default function AppointmentsPage() {
               {displayedEmployees.map((emp, index) => (
                 <div 
                   key={emp.id} 
-                  className="p-3 bg-secondary rounded-lg text-center animate-fade-in-down"
+                    className="p-3 bg-secondary rounded-lg text-center animate-fade-in-down relative"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <div 
-                    className="w-12 h-12 mx-auto mb-2 flex items-center justify-center font-bold rounded-full shadow-md"
+                      className="w-12 h-12 mx-auto mb-2 flex items-center justify-center font-bold rounded-full shadow-md relative"
                     style={{ backgroundColor: emp.color, color: 'white' }}
                   >
-                    {emp.firstName[0]}{emp.lastName[0]}
+                      <span className="z-10">{emp.firstName[0]}{emp.lastName[0]}</span>
+                      <div className="absolute -top-1 -right-1">
+                        <AfricanStarSymbol size={10} animated={true} color="yellow" />
+                      </div>
                   </div>
                   <p className="font-medium">{emp.firstName}</p>
                 </div>
@@ -250,24 +268,40 @@ export default function AppointmentsPage() {
                       <div 
                         key={`${emp.id}-${time}`}
                         className={cn(
-                          "min-h-[60px] border border-border rounded-lg p-2 transition-all duration-200 cursor-pointer group",
+                          "min-h-[60px] border border-border rounded-lg p-2 transition-all duration-200 group",
                           appointment 
-                            ? statusColors[appointment.status]
+                            ? `${statusColors[appointment.status]} cursor-pointer hover:shadow-md hover:scale-[1.02]`
                             : "bg-background hover:bg-secondary hover:shadow-sm hover:scale-[1.02]"
                         )}
                       >
-                        {appointment && client && service && (
-                          <div className="text-xs space-y-1">
-                            <div className="flex items-center gap-1 font-medium">
-                              <User className="w-3 h-3" />
-                              {client.firstName} {client.lastName}
+                        {appointment && client && service ? (
+                          <Link to={`/appointments/${appointment.id}`} className="block">
+                            <div className="text-xs space-y-1">
+                              <div className="flex items-center gap-1 font-medium">
+                                <User className="w-3 h-3" />
+                                {client.firstName} {client.lastName}
+                              </div>
+                              <div className="flex items-center gap-1 opacity-80">
+                                <Clock className="w-3 h-3" />
+                                {service.name}
+                              </div>
+                              {appointment.source && (
+                                <div className="flex items-center gap-1 mt-1">
+                                  {appointment.source === 'whatsapp' && <MessageCircle className="w-3 h-3 text-green-500" />}
+                                  {appointment.source === 'website' && <Globe className="w-3 h-3 text-blue-500" />}
+                                  {appointment.source === 'phone' && <PhoneCall className="w-3 h-3 text-purple-500" />}
+                                  {appointment.source === 'walk_in' && <UserRound className="w-3 h-3 text-orange-500" />}
+                                  <span className="text-[10px] opacity-70">
+                                    {appointment.source === 'whatsapp' && 'WhatsApp'}
+                                    {appointment.source === 'website' && 'Site'}
+                                    {appointment.source === 'phone' && 'Tél'}
+                                    {appointment.source === 'walk_in' && 'Sur place'}
+                                  </span>
+                                </div>
+                              )}
                             </div>
-                            <div className="flex items-center gap-1 opacity-80">
-                              <Clock className="w-3 h-3" />
-                              {service.name}
-                            </div>
-                          </div>
-                        )}
+                          </Link>
+                        ) : null}
                       </div>
                     );
                   })}

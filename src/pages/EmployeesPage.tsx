@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { Plus, Mail, Phone, MoreHorizontal, Shield, Scissors, UserCircle, Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Plus, Mail, Phone, MoreHorizontal, Shield, Scissors, UserCircle, Users, Eye, Edit } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { mockEmployees, mockAppointments } from '@/data/mockData';
+import { mockEmployees } from '@/data/mockData';
+import { useAppointments } from '@/contexts/AppointmentsContext';
 import { EmployeeRole } from '@/types';
 import { 
   Dialog, 
@@ -12,6 +14,12 @@ import {
   DialogTitle, 
   DialogTrigger 
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
 import { 
   Select,
@@ -29,6 +37,7 @@ const roleConfig: Record<EmployeeRole, { label: string; icon: React.ReactNode }>
 };
 
 export default function EmployeesPage() {
+  const { appointments } = useAppointments();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string>('all');
 
@@ -38,10 +47,10 @@ export default function EmployeesPage() {
 
   // Calculate stats for each employee
   const getEmployeeStats = (employeeId: string) => {
-    const appointments = mockAppointments.filter(apt => apt.employeeId === employeeId);
+    const employeeAppointments = appointments.filter(apt => apt.employeeId === employeeId);
     return {
-      totalAppointments: appointments.length,
-      todayAppointments: appointments.filter(apt => apt.date === '2026-01-30').length,
+      totalAppointments: employeeAppointments.length,
+      todayAppointments: employeeAppointments.filter(apt => apt.date === '2026-01-30').length,
     };
   };
 
@@ -159,16 +168,38 @@ export default function EmployeesPage() {
                       {employee.firstName[0]}{employee.lastName[0]}
                     </div>
                     <div>
-                      <h3 className="font-bold group-hover:text-primary transition-colors">{employee.firstName} {employee.lastName}</h3>
+                      <Link to={`/employees/${employee.id}`}>
+                        <h3 className="font-bold group-hover:text-primary transition-colors cursor-pointer hover:underline">
+                          {employee.firstName} {employee.lastName}
+                        </h3>
+                      </Link>
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         {role.icon}
                         <span>{role.label}</span>
                       </div>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                    <MoreHorizontal className="w-4 h-4" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <MoreHorizontal className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link to={`/employees/${employee.id}`}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          Voir détails
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to={`/employees/${employee.id}/edit`}>
+                          <Edit className="w-4 h-4 mr-2" />
+                          Modifier
+                        </Link>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
                 <div className="space-y-2 text-sm mb-4">

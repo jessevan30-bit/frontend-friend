@@ -23,8 +23,8 @@ export function StatCard({ title, value, subtitle, icon, trend, className, delay
       )}
       style={{ animationDelay: `${delay}ms` }}
     >
-      {/* Decorative gradient accent */}
-      <div className="absolute top-0 left-0 w-full h-1 gradient-sunset opacity-80" />
+      {/* Decorative gradient accent avec couleurs gabonaises */}
+      <div className="absolute top-0 left-0 w-full h-1 gradient-gabon-horizontal opacity-80" />
       
       <div className="flex items-start justify-between relative">
         <div className="animate-fade-in-up" style={{ animationDelay: `${delay + 100}ms` }}>

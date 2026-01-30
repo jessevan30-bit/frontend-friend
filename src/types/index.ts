@@ -1,5 +1,15 @@
 // Types pour l'application SalonPro
 
+export interface TenantTheme {
+  primaryColor?: string; // Couleur principale (ex: #15 70% 45%)
+  secondaryColor?: string; // Couleur secondaire
+  accentColor?: string; // Couleur d'accent
+  backgroundColor?: string; // Couleur de fond
+  textColor?: string; // Couleur du texte
+  buttonColor?: string; // Couleur des boutons
+  linkColor?: string; // Couleur des liens
+}
+
 export interface Salon {
   id: string;
   name: string;
@@ -10,6 +20,8 @@ export interface Salon {
   currency: string;
   timezone: string;
   logo?: string;
+  heroImage?: string; // Image hero personnalisée (optionnel, utilise Unsplash par défaut)
+  theme?: TenantTheme; // Thème personnalisé du tenant
 }
 
 export type EmployeeRole = 'admin' | 'coiffeur' | 'receptionniste';
@@ -55,9 +67,12 @@ export interface Service {
   price: number;
   categoryId: string;
   isActive: boolean;
+  image?: string; // URL de l'image du service
 }
 
 export type AppointmentStatus = 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
+
+export type BookingSource = 'website' | 'whatsapp' | 'phone' | 'walk_in';
 
 export interface Appointment {
   id: string;
@@ -70,10 +85,12 @@ export interface Appointment {
   endTime: string;
   status: AppointmentStatus;
   notes?: string;
+  source?: BookingSource; // Source de la réservation
   createdAt: string;
 }
 
-export type PaymentMethod = 'cash' | 'card' | 'mobile' | 'online';
+export type PaymentMethod = 'cash' | 'card' | 'mobile' | 'online' | 'airtel_money' | 'cash_on_arrival';
+export type BookingSource = 'website' | 'whatsapp' | 'phone' | 'walk_in';
 export type PaymentStatus = 'pending' | 'completed' | 'refunded';
 
 export interface Payment {
