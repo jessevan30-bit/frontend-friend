@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Mail, Phone, MoreHorizontal, Shield, Scissors, UserCircle } from 'lucide-react';
+import { Plus, Mail, Phone, MoreHorizontal, Shield, Scissors, UserCircle, Users } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,19 +50,24 @@ export default function EmployeesPage() {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold">Employés</h1>
-            <p className="text-muted-foreground">{mockEmployees.length} membres de l'équipe</p>
+          <div className="animate-fade-in-left">
+            <h1 className="text-2xl font-bold flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Users className="w-6 h-6 text-primary" />
+              </div>
+              Employés
+            </h1>
+            <p className="text-muted-foreground mt-1">{mockEmployees.length} membres de l'équipe</p>
           </div>
           
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
+              <Button className="gap-2 shadow-md hover:shadow-glow-primary transition-all duration-300 hover:scale-105">
                 <Plus className="w-4 h-4" />
                 Nouvel employé
               </Button>
             </DialogTrigger>
-            <DialogContent className="border-2 border-border">
+            <DialogContent className="border border-border rounded-xl animate-scale-in">
               <DialogHeader>
                 <DialogTitle>Ajouter un employé</DialogTitle>
               </DialogHeader>
@@ -102,7 +107,7 @@ export default function EmployeesPage() {
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Annuler
                   </Button>
-                  <Button type="submit">Enregistrer</Button>
+                  <Button type="submit" className="shadow-md hover:shadow-glow-primary">Enregistrer</Button>
                 </div>
               </form>
             </DialogContent>
@@ -110,11 +115,12 @@ export default function EmployeesPage() {
         </div>
 
         {/* Role filter */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 animate-fade-in">
           <Button 
             variant={selectedRole === 'all' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setSelectedRole('all')}
+            className="transition-all duration-200 hover:scale-105"
           >
             Tous
           </Button>
@@ -124,7 +130,7 @@ export default function EmployeesPage() {
               variant={selectedRole === role ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSelectedRole(role)}
-              className="gap-2"
+              className="gap-2 transition-all duration-200 hover:scale-105"
             >
               {config.icon}
               {config.label}
@@ -134,42 +140,43 @@ export default function EmployeesPage() {
 
         {/* Employees grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredEmployees.map(employee => {
+          {filteredEmployees.map((employee, index) => {
             const stats = getEmployeeStats(employee.id);
             const role = roleConfig[employee.role];
             
             return (
               <div 
                 key={employee.id}
-                className="bg-card border-2 border-border p-5 hover:shadow-sm transition-shadow"
+                className="bg-card border border-border rounded-xl p-5 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group animate-fade-in-up"
+                style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div 
-                      className="w-14 h-14 flex items-center justify-center font-bold text-lg text-primary-foreground"
-                      style={{ backgroundColor: employee.color }}
+                      className="w-14 h-14 flex items-center justify-center font-bold text-lg rounded-full shadow-md group-hover:shadow-glow group-hover:scale-110 transition-all duration-300"
+                      style={{ backgroundColor: employee.color, color: 'white' }}
                     >
                       {employee.firstName[0]}{employee.lastName[0]}
                     </div>
                     <div>
-                      <h3 className="font-bold">{employee.firstName} {employee.lastName}</h3>
+                      <h3 className="font-bold group-hover:text-primary transition-colors">{employee.firstName} {employee.lastName}</h3>
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         {role.icon}
                         <span>{role.label}</span>
                       </div>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
                     <MoreHorizontal className="w-4 h-4" />
                   </Button>
                 </div>
 
                 <div className="space-y-2 text-sm mb-4">
-                  <div className="flex items-center gap-2 text-muted-foreground">
+                  <div className="flex items-center gap-2 text-muted-foreground group-hover:translate-x-1 transition-transform">
                     <Mail className="w-4 h-4" />
                     <span className="truncate">{employee.email}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
+                  <div className="flex items-center gap-2 text-muted-foreground group-hover:translate-x-1 transition-transform delay-75">
                     <Phone className="w-4 h-4" />
                     <span>{employee.phone}</span>
                   </div>
@@ -177,23 +184,23 @@ export default function EmployeesPage() {
 
                 {/* Stats */}
                 <div className="grid grid-cols-2 gap-2 mb-4">
-                  <div className="bg-secondary p-3 text-center">
-                    <p className="text-2xl font-bold">{stats.todayAppointments}</p>
+                  <div className="bg-secondary rounded-lg p-3 text-center group-hover:shadow-sm transition-shadow">
+                    <p className="text-2xl font-bold text-primary">{stats.todayAppointments}</p>
                     <p className="text-xs text-muted-foreground">RDV aujourd'hui</p>
                   </div>
-                  <div className="bg-secondary p-3 text-center">
-                    <p className="text-2xl font-bold">{stats.totalAppointments}</p>
+                  <div className="bg-secondary rounded-lg p-3 text-center group-hover:shadow-sm transition-shadow">
+                    <p className="text-2xl font-bold text-primary">{stats.totalAppointments}</p>
                     <p className="text-xs text-muted-foreground">RDV total</p>
                   </div>
                 </div>
 
                 <div className={cn(
-                  "inline-block px-2 py-1 text-xs font-medium",
+                  "inline-block px-3 py-1 text-xs font-medium rounded-full",
                   employee.isActive 
-                    ? "bg-primary text-primary-foreground" 
+                    ? "bg-primary/10 text-primary" 
                     : "bg-muted text-muted-foreground"
                 )}>
-                  {employee.isActive ? 'Actif' : 'Inactif'}
+                  {employee.isActive ? '● Actif' : '○ Inactif'}
                 </div>
               </div>
             );
