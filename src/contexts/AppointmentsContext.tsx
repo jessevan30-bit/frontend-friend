@@ -11,7 +11,7 @@ interface AppointmentsContextType {
   addPayment: (payment: Omit<Payment, 'id' | 'createdAt' | 'status'>) => Payment;
   getClientByEmail: (email: string) => Client | undefined;
   getClientById: (id: string) => Client | undefined;
-  updateAppointmentStatus: (appointmentId: string, status: Appointment['status']) => void;
+  updateAppointmentStatus: (appointmentId: string, status: Appointment['status'], updateData?: Partial<Appointment>) => void;
 }
 
 const AppointmentsContext = createContext<AppointmentsContextType | undefined>(undefined);
@@ -77,11 +77,12 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
 
   const updateAppointmentStatus = useCallback((
     appointmentId: string,
-    status: Appointment['status']
+    status: Appointment['status'],
+    updateData?: Partial<Appointment>
   ) => {
     setAppointments(prev =>
       prev.map(apt =>
-        apt.id === appointmentId ? { ...apt, status } : apt
+        apt.id === appointmentId ? { ...apt, status, ...updateData } : apt
       )
     );
   }, []);

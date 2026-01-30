@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Plus, Phone, Mail, Calendar, MoreHorizontal, Users, Clock, MessageCircle } from 'lucide-react';
+import { Search, Plus, Phone, Mail, Calendar, MoreHorizontal, Users, Clock, MessageCircle, X, Send, CheckCircle2, Globe } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { mockEmployees, mockServices, mockSalon } from '@/data/mockData';
 import { toast } from '@/hooks/use-toast';
 
@@ -37,6 +38,9 @@ export default function ClientsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [isAppointmentDialogOpen, setIsAppointmentDialogOpen] = useState(false);
+  const [showWhatsAppSimulation, setShowWhatsAppSimulation] = useState(false);
+  const [whatsAppMessages, setWhatsAppMessages] = useState<Array<{text: string; sender: 'salon' | 'client'; time: string}>>([]);
+  const [whatsAppInput, setWhatsAppInput] = useState('');
   const [appointmentForm, setAppointmentForm] = useState({
     serviceId: '',
     employeeId: '',
@@ -213,54 +217,100 @@ export default function ClientsPage() {
               <DialogTitle>Nouveau rendez-vous</DialogTitle>
             </DialogHeader>
             
-            {/* Option WhatsApp */}
-            <div className="mb-4 p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <MessageCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
-                  <div>
-                    <span className="text-sm font-medium text-green-900 dark:text-green-100 block">Réserver via WhatsApp</span>
-                    <span className="text-xs text-green-700 dark:text-green-300">Échangez avec le client puis créez le RDV</span>
-                  </div>
+            {/* Sélection de la source de réservation */}
+            <div className="mb-4 p-4 bg-secondary/50 border border-border rounded-lg">
+              <Label className="text-sm font-medium mb-3 block">Source de la réservation *</Label>
+              <RadioGroup
+                value={appointmentForm.source}
+                onValueChange={(value) => setAppointmentForm(prev => ({ ...prev, source: value as 'website' | 'whatsapp' | 'phone' | 'walk_in' }))}
+                className="space-y-3"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="website" id="source-website" />
+                  <Label htmlFor="source-website" className="flex items-center gap-2 cursor-pointer flex-1">
+                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                      <Globe className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <span className="font-medium">Site web</span>
+                      <p className="text-xs text-muted-foreground">Réservation effectuée via le site</p>
+                    </div>
+                  </Label>
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="bg-green-500 hover:bg-green-600 text-white border-green-500 hover:border-green-600"
-                  onClick={() => {
-                    const client = clients.find(c => c.id === selectedClientId);
-                    if (!client) return;
-                    
-                    const salonPhone = mockSalon.phone || '+241 06 12 34 56 78';
-                    const phoneNumber = salonPhone.replace(/\s/g, '').replace(/\+/g, '');
-                    const message = encodeURIComponent(
-                      `Bonjour ${client.firstName},\n\n` +
-                      `Je vous contacte concernant une réservation au ${mockSalon.name}.\n\n` +
-                      `Pouvez-vous me confirmer vos disponibilités ?\n\n` +
-                      `Merci !`
-                    );
-                    window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
-                    
-                    // Marquer comme réservation WhatsApp pour le formulaire
-                    setAppointmentForm(prev => ({ ...prev, source: 'whatsapp' as const }));
-                    
-                    toast({
-                      title: "WhatsApp ouvert",
-                      description: "Après votre échange avec le client, remplissez le formulaire ci-dessous pour créer le rendez-vous.",
-                    });
-                  }}
-                >
-                  <MessageCircle className="w-3 h-3 mr-1" />
-                  Ouvrir WhatsApp
-                </Button>
-              </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="whatsapp" id="source-whatsapp" />
+                  <Label htmlFor="source-whatsapp" className="flex items-center gap-2 cursor-pointer flex-1">
+                    <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                      <MessageCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div>
+                      <span className="font-medium">WhatsApp</span>
+                      <p className="text-xs text-muted-foreground">Réservation effectuée via WhatsApp</p>
+                    </div>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="phone" id="source-phone" />
+                  <Label htmlFor="source-phone" className="flex items-center gap-2 cursor-pointer flex-1">
+                    <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                      <Phone className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div>
+                      <span className="font-medium">Téléphone</span>
+                      <p className="text-xs text-muted-foreground">Réservation effectuée par téléphone</p>
+                    </div>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="walk_in" id="source-walk_in" />
+                  <Label htmlFor="source-walk_in" className="flex items-center gap-2 cursor-pointer flex-1">
+                    <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                      <Users className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                    </div>
+                    <div>
+                      <span className="font-medium">Sur place</span>
+                      <p className="text-xs text-muted-foreground">Client venu directement au salon</p>
+                    </div>
+                  </Label>
+                </div>
+              </RadioGroup>
+
+              {/* Option pour ouvrir WhatsApp si sélectionné */}
               {appointmentForm.source === 'whatsapp' && (
-                <div className="mt-2 pt-2 border-t border-green-200 dark:border-green-800">
-                  <div className="flex items-center gap-2 text-xs text-green-700 dark:text-green-300">
-                    <MessageCircle className="w-3 h-3" />
-                    <span>Ce rendez-vous sera marqué comme réservé via WhatsApp</span>
-                  </div>
+                <div className="mt-3 pt-3 border-t border-border">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full bg-green-500 hover:bg-green-600 text-white border-green-500 hover:border-green-600"
+                    onClick={() => {
+                      const client = clients.find(c => c.id === selectedClientId);
+                      if (!client) return;
+                      
+                      // Ouvrir la simulation WhatsApp
+                      setShowWhatsAppSimulation(true);
+                      
+                      // Initialiser les messages
+                      const initialMessage = `Bonjour ${client.firstName},\n\nJe vous contacte concernant une réservation au ${mockSalon.name}.\n\nPouvez-vous me confirmer vos disponibilités ?\n\nMerci !`;
+                      setWhatsAppMessages([{
+                        text: initialMessage,
+                        sender: 'salon',
+                        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                      }]);
+                      
+                      // Simuler une réponse automatique après 2 secondes
+                      setTimeout(() => {
+                        setWhatsAppMessages(prev => [...prev, {
+                          text: `Bonjour ! Oui, je suis disponible. Quels sont vos créneaux disponibles cette semaine ?`,
+                          sender: 'client',
+                          time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                        }]);
+                      }, 2000);
+                    }}
+                  >
+                    <MessageCircle className="w-3 h-3 mr-2" />
+                    Ouvrir WhatsApp pour échanger avec le client
+                  </Button>
                 </div>
               )}
             </div>
@@ -429,6 +479,150 @@ export default function ClientsPage() {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* Simulation WhatsApp */}
+        {showWhatsAppSimulation && selectedClientId && (
+          <Dialog open={showWhatsAppSimulation} onOpenChange={setShowWhatsAppSimulation}>
+            <DialogContent className="border border-border rounded-xl animate-scale-in max-w-md p-0 h-[600px] flex flex-col">
+              {/* Header WhatsApp */}
+              <div className="bg-green-500 text-white p-4 rounded-t-xl flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                    <MessageCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">
+                      {clients.find(c => c.id === selectedClientId)?.firstName} {clients.find(c => c.id === selectedClientId)?.lastName}
+                    </h3>
+                    <p className="text-xs text-white/80">en ligne</p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-white hover:bg-white/20"
+                  onClick={() => {
+                    setShowWhatsAppSimulation(false);
+                    setWhatsAppMessages([]);
+                    setWhatsAppInput('');
+                  }}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900">
+                {whatsAppMessages.map((msg, index) => (
+                  <div
+                    key={index}
+                    className={`flex ${msg.sender === 'salon' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`max-w-[80%] rounded-lg p-3 ${
+                        msg.sender === 'salon'
+                          ? 'bg-green-500 text-white'
+                          : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+                      }`}
+                    >
+                      <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+                      <p className={`text-xs mt-1 ${msg.sender === 'salon' ? 'text-white/70' : 'text-gray-500'}`}>
+                        {msg.time}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Input zone */}
+              <div className="p-4 bg-white dark:bg-gray-800 border-t border-border">
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={whatsAppInput}
+                    onChange={(e) => setWhatsAppInput(e.target.value)}
+                    placeholder="Tapez votre message..."
+                    className="flex-1"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && whatsAppInput.trim()) {
+                        setWhatsAppMessages(prev => [...prev, {
+                          text: whatsAppInput,
+                          sender: 'salon',
+                          time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                        }]);
+                        setWhatsAppInput('');
+                        
+                        // Simuler une réponse du client après 1.5 secondes
+                        setTimeout(() => {
+                          const responses = [
+                            "Parfait, je suis disponible demain à 14h.",
+                            "D'accord, merci pour l'information.",
+                            "Je préfère le matin si possible.",
+                            "Très bien, je confirme pour ce créneau."
+                          ];
+                          const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                          setWhatsAppMessages(prev => [...prev, {
+                            text: randomResponse,
+                            sender: 'client',
+                            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                          }]);
+                        }, 1500);
+                      }
+                    }}
+                  />
+                  <Button
+                    size="icon"
+                    className="bg-green-500 hover:bg-green-600 text-white"
+                    onClick={() => {
+                      if (whatsAppInput.trim()) {
+                        setWhatsAppMessages(prev => [...prev, {
+                          text: whatsAppInput,
+                          sender: 'salon',
+                          time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                        }]);
+                        setWhatsAppInput('');
+                        
+                        // Simuler une réponse du client
+                        setTimeout(() => {
+                          const responses = [
+                            "Parfait, je suis disponible demain à 14h.",
+                            "D'accord, merci pour l'information.",
+                            "Je préfère le matin si possible.",
+                            "Très bien, je confirme pour ce créneau."
+                          ];
+                          const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                          setWhatsAppMessages(prev => [...prev, {
+                            text: randomResponse,
+                            sender: 'client',
+                            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                          }]);
+                        }, 1500);
+                      }
+                    }}
+                  >
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                {/* Bouton pour terminer et créer le RDV */}
+                <div className="mt-3 pt-3 border-t border-border">
+                  <Button
+                    className="w-full bg-green-500 hover:bg-green-600 text-white"
+                    onClick={() => {
+                      setShowWhatsAppSimulation(false);
+                      toast({
+                        title: "Échange terminé",
+                        description: "Remplissez maintenant le formulaire ci-dessous avec les détails convenus pour créer le rendez-vous.",
+                      });
+                    }}
+                  >
+                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                    Terminer l'échange et créer le RDV
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </DashboardLayout>
   );

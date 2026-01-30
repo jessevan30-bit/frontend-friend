@@ -21,7 +21,10 @@ import {
   MessageCircle,
   Globe,
   PhoneCall,
-  UserRound
+  UserRound,
+  X,
+  CalendarX,
+  CalendarClock
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -42,6 +45,25 @@ import { getServiceById } from '@/data/mockData';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const statusConfig: Record<AppointmentStatus, { 
   label: string; 
@@ -78,7 +100,34 @@ const statusConfig: Record<AppointmentStatus, {
     className: 'bg-gray-500/10 text-gray-700 dark:text-gray-400 border-gray-500/20',
     icon: <XCircle className="w-4 h-4" />
   },
+  rescheduled: { 
+    label: 'Reporté', 
+    className: 'bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20',
+    icon: <CalendarClock className="w-4 h-4" />
+  },
 };
+
+const cancellationReasons = [
+  { value: 'client_request', label: 'Demande du client' },
+  { value: 'salon_unavailable', label: 'Salon indisponible' },
+  { value: 'weather', label: 'Conditions météorologiques' },
+  { value: 'emergency', label: 'Urgence' },
+  { value: 'other', label: 'Autre' },
+];
+
+const rescheduleReasons = [
+  { value: 'client_request', label: 'Demande du client' },
+  { value: 'salon_unavailable', label: 'Salon indisponible' },
+  { value: 'conflict', label: 'Conflit d\'horaire' },
+  { value: 'preference', label: 'Préférence du client' },
+  { value: 'other', label: 'Autre' },
+];
+
+const timeSlots = [
+  '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+  '12:00', '12:30', '14:00', '14:30', '15:00', '15:30',
+  '16:00', '16:30', '17:00', '17:30', '18:00', '18:30'
+];
 
 export default function AppointmentDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -86,6 +135,14 @@ export default function AppointmentDetailPage() {
   const { appointments, clients, getClientById, updateAppointmentStatus } = useAppointments();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showRescheduleDialog, setShowRescheduleDialog] = useState(false);
+  const [cancelReason, setCancelReason] = useState<string>('');
+  const [cancelNotes, setCancelNotes] = useState('');
+  const [rescheduleReason, setRescheduleReason] = useState<string>('');
+  const [rescheduleNotes, setRescheduleNotes] = useState('');
+  const [newDate, setNewDate] = useState<Date | undefined>(undefined);
+  const [newTime, setNewTime] = useState('');
 
   const appointment = id ? appointments.find(apt => apt.id === id) : null;
 
@@ -153,6 +210,67 @@ export default function AppointmentDetailPage() {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const handleCancel = () => {
+    if (!cancelReason) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner un motif d'annulation.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const updateData: Partial<Appointment> = {
+      cancellationReason: cancelReason as any,
+      cancellationNotes: cancelNotes || undefined,
+    };
+    
+    updateAppointmentStatus(appointment.id, 'cancelled', updateData);
+    
+    toast({
+      title: "Rendez-vous annulé",
+      description: "Le rendez-vous a été annulé avec succès.",
+    });
+    
+    setShowCancelDialog(false);
+    setCancelReason('');
+    setCancelNotes('');
+  };
+
+  const handleReschedule = () => {
+    if (!newDate || !newTime || !rescheduleReason) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs obligatoires.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const newDateString = format(newDate, 'yyyy-MM-dd');
+    const updateData: Partial<Appointment> = {
+      originalDate: appointment.date,
+      originalStartTime: appointment.startTime,
+      date: newDateString,
+      startTime: newTime,
+      rescheduleReason: rescheduleReason as any,
+      rescheduleNotes: rescheduleNotes || undefined,
+    };
+    
+    updateAppointmentStatus(appointment.id, 'rescheduled', updateData);
+    
+    toast({
+      title: "Rendez-vous reporté",
+      description: `Le rendez-vous a été reporté au ${format(newDate, 'dd MMMM yyyy', { locale: fr })} à ${newTime}.`,
+    });
+    
+    setShowRescheduleDialog(false);
+    setRescheduleReason('');
+    setRescheduleNotes('');
+    setNewDate(undefined);
+    setNewTime('');
   };
 
   const appointmentDate = new Date(appointment.date);
@@ -235,31 +353,56 @@ export default function AppointmentDetailPage() {
             {statusInfo.label}
           </Badge>
           
-          {/* Menu de changement de statut */}
-          {appointment.status !== 'completed' && appointment.status !== 'cancelled' && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" disabled={isUpdatingStatus}>
-                  Changer le statut
+          {/* Actions rapides */}
+          <div className="flex gap-2">
+            {appointment.status !== 'completed' && appointment.status !== 'cancelled' && appointment.status !== 'rescheduled' && (
+              <>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowRescheduleDialog(true)}
+                  className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                >
+                  <CalendarClock className="w-4 h-4 mr-2" />
+                  Reporter
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                {Object.entries(statusConfig).map(([status, config]) => {
-                  if (status === appointment.status) return null;
-                  if (status === 'no_show' && appointment.status !== 'confirmed') return null;
-                  return (
-                    <DropdownMenuItem
-                      key={status}
-                      onClick={() => handleStatusChange(status as AppointmentStatus)}
-                    >
-                      {config.icon}
-                      <span className="ml-2">{config.label}</span>
-                    </DropdownMenuItem>
-                  );
-                })}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowCancelDialog(true)}
+                  className="text-red-600 border-red-200 hover:bg-red-50"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Annuler
+                </Button>
+              </>
+            )}
+            {appointment.status !== 'completed' && appointment.status !== 'cancelled' && appointment.status !== 'rescheduled' && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" disabled={isUpdatingStatus}>
+                    Changer le statut
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {Object.entries(statusConfig).map(([status, config]) => {
+                    if (status === appointment.status) return null;
+                    if (status === 'no_show' && appointment.status !== 'confirmed') return null;
+                    if (status === 'rescheduled' || status === 'cancelled') return null; // Géré par les boutons dédiés
+                    return (
+                      <DropdownMenuItem
+                        key={status}
+                        onClick={() => handleStatusChange(status as AppointmentStatus)}
+                      >
+                        {config.icon}
+                        <span className="ml-2">{config.label}</span>
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </motion.div>
 
         {/* Informations principales */}
@@ -529,6 +672,157 @@ export default function AppointmentDetailPage() {
             </Card>
           </motion.div>
         </div>
+
+        {/* Dialog d'annulation */}
+        <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Annuler le rendez-vous</DialogTitle>
+              <DialogDescription>
+                Veuillez sélectionner un motif d'annulation et ajouter des notes si nécessaire.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Motif d'annulation *</Label>
+                <Select value={cancelReason} onValueChange={setCancelReason}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner un motif" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cancellationReasons.map((reason) => (
+                      <SelectItem key={reason.value} value={reason.value}>
+                        {reason.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Notes (optionnel)</Label>
+                <Textarea
+                  placeholder="Ajoutez des détails sur l'annulation..."
+                  value={cancelNotes}
+                  onChange={(e) => setCancelNotes(e.target.value)}
+                  rows={3}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => {
+                setShowCancelDialog(false);
+                setCancelReason('');
+                setCancelNotes('');
+              }}>
+                Annuler
+              </Button>
+              <Button
+                onClick={handleCancel}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Confirmer l'annulation
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog de report */}
+        <Dialog open={showRescheduleDialog} onOpenChange={setShowRescheduleDialog}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Reporter le rendez-vous</DialogTitle>
+              <DialogDescription>
+                Sélectionnez une nouvelle date et heure, puis indiquez le motif du report.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Nouvelle date *</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !newDate && "text-muted-foreground"
+                        )}
+                      >
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {newDate ? format(newDate, 'dd MMMM yyyy', { locale: fr }) : "Sélectionner une date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <CalendarComponent
+                        mode="single"
+                        selected={newDate}
+                        onSelect={setNewDate}
+                        disabled={(date) => date < new Date()}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="space-y-2">
+                  <Label>Nouvelle heure *</Label>
+                  <Select value={newTime} onValueChange={setNewTime}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner une heure" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {timeSlots.map((time) => (
+                        <SelectItem key={time} value={time}>
+                          {time}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Motif du report *</Label>
+                <Select value={rescheduleReason} onValueChange={setRescheduleReason}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner un motif" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {rescheduleReasons.map((reason) => (
+                      <SelectItem key={reason.value} value={reason.value}>
+                        {reason.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Notes (optionnel)</Label>
+                <Textarea
+                  placeholder="Ajoutez des détails sur le report..."
+                  value={rescheduleNotes}
+                  onChange={(e) => setRescheduleNotes(e.target.value)}
+                  rows={3}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => {
+                setShowRescheduleDialog(false);
+                setRescheduleReason('');
+                setRescheduleNotes('');
+                setNewDate(undefined);
+                setNewTime('');
+              }}>
+                Annuler
+              </Button>
+              <Button
+                onClick={handleReschedule}
+                className="bg-orange-600 hover:bg-orange-700"
+              >
+                Confirmer le report
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );

@@ -1,6 +1,8 @@
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Service } from '@/types';
 import { ServiceCategory } from '@/types';
-import { Clock, Banknote, Scissors, Pencil, Trash2, ArrowRight, MoreHorizontal, Eye } from 'lucide-react';
+import { Clock, Banknote, Scissors, Pencil, Trash2, ArrowRight, MoreHorizontal, Eye, User, UserCircle, Baby } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
@@ -16,6 +18,7 @@ interface ServiceCardProps {
   onEdit?: (service: Service) => void;
   onDelete?: (service: Service) => void;
   onReserve?: (service: Service) => void;
+  onPublishChange?: (service: Service, isPublished: boolean) => void;
   className?: string;
 }
 
@@ -27,6 +30,7 @@ export function ServiceCard({
   onEdit,
   onDelete,
   onReserve,
+  onPublishChange,
   className,
 }: ServiceCardProps) {
   const isAdmin = variant === 'admin';
@@ -62,10 +66,10 @@ export function ServiceCard({
             </motion.div>
           </div>
         )}
-        {/* Badge catégorie sur l'image */}
-        <div className="absolute bottom-3 left-3">
+        {/* Badges catégorie et type de client sur l'image */}
+        <div className="absolute bottom-2 left-2 right-2 flex items-center gap-1.5 flex-wrap">
           <span
-            className="px-3 py-1 text-xs font-medium rounded-full shadow-lg backdrop-blur-sm"
+            className="px-2 py-0.5 text-xs font-medium rounded-full shadow-md backdrop-blur-sm"
             style={{
               backgroundColor: category?.color || 'hsl(var(--muted))',
               color: 'white',
@@ -73,6 +77,20 @@ export function ServiceCard({
           >
             {category?.name || 'Sans catégorie'}
           </span>
+          {service.target && service.target !== 'unisex' && (
+            <span
+              className={cn(
+                "px-2 py-0.5 text-xs font-medium rounded-full shadow-md backdrop-blur-sm flex items-center gap-1",
+                service.target === 'homme' && "bg-blue-600 text-white",
+                service.target === 'femme' && "bg-pink-600 text-white",
+                service.target === 'enfant' && "bg-yellow-600 text-white"
+              )}
+            >
+              {service.target === 'homme' && <><User className="w-3 h-3" /> Homme</>}
+              {service.target === 'femme' && <><UserCircle className="w-3 h-3" /> Femme</>}
+              {service.target === 'enfant' && <><Baby className="w-3 h-3" /> Enfant</>}
+            </span>
+          )}
         </div>
       </div>
 
@@ -173,20 +191,32 @@ export function ServiceCard({
         </div>
       </div>
 
-      {/* Statut actif/inactif pour admin */}
+      {/* Statut actif/inactif et publication pour admin */}
       {isAdmin && (
-        <div
-          className={cn(
-            "inline-block px-3 py-1 text-xs font-medium rounded-full mb-4",
-            service.isActive
-              ? "bg-primary/10 text-primary"
-              : "bg-muted text-muted-foreground"
-          )}
-        >
-          {service.isActive ? '● Actif' : '○ Inactif'}
+        <div className="flex items-center justify-between mb-4">
+          <div
+            className={cn(
+              "inline-block px-3 py-1 text-xs font-medium rounded-full",
+              service.isActive
+                ? "bg-primary/10 text-primary"
+                : "bg-muted text-muted-foreground"
+            )}
+          >
+            {service.isActive ? '● Actif' : '○ Inactif'}
+          </div>
+          <div className="flex items-center space-x-2">
+            <Switch
+              id={`publish-${service.id}`}
+              checked={service.isPublished}
+              onCheckedChange={(isPublished) => onPublishChange?.(service, isPublished)}
+              aria-label="Publier le service"
+            />
+            <Label htmlFor={`publish-${service.id}`} className="text-sm">
+              Publié
+            </Label>
+          </div>
         </div>
       )}
-
       </div>
       {/* Actions footer */}
       <div

@@ -58,6 +58,8 @@ export interface ServiceCategory {
   color: string;
 }
 
+export type ServiceTarget = 'homme' | 'femme' | 'enfant' | 'unisex';
+
 export interface Service {
   id: string;
   salonId: string;
@@ -66,11 +68,27 @@ export interface Service {
   duration: number; // en minutes
   price: number;
   categoryId: string;
+  target: ServiceTarget; // Cible du service (homme, femme, enfant, unisex)
   isActive: boolean;
+  isPublished?: boolean; // Ajout de la propriété pour la publication
   image?: string; // URL de l'image du service
 }
 
-export type AppointmentStatus = 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
+export type AppointmentStatus = 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show' | 'rescheduled';
+
+export type CancellationReason = 
+  | 'client_request'
+  | 'salon_unavailable'
+  | 'weather'
+  | 'emergency'
+  | 'other';
+
+export type RescheduleReason = 
+  | 'client_request'
+  | 'salon_unavailable'
+  | 'conflict'
+  | 'preference'
+  | 'other';
 
 export type BookingSource = 'website' | 'whatsapp' | 'phone' | 'walk_in';
 
@@ -86,11 +104,16 @@ export interface Appointment {
   status: AppointmentStatus;
   notes?: string;
   source?: BookingSource; // Source de la réservation
+  cancellationReason?: CancellationReason;
+  cancellationNotes?: string;
+  rescheduleReason?: RescheduleReason;
+  rescheduleNotes?: string;
+  originalDate?: string; // Date originale si reporté
+  originalStartTime?: string; // Heure originale si reporté
   createdAt: string;
 }
 
 export type PaymentMethod = 'cash' | 'card' | 'mobile' | 'online' | 'airtel_money' | 'cash_on_arrival';
-export type BookingSource = 'website' | 'whatsapp' | 'phone' | 'walk_in';
 export type PaymentStatus = 'pending' | 'completed' | 'refunded';
 
 export interface Payment {
