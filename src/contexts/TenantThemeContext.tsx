@@ -11,15 +11,22 @@ interface TenantThemeContextType {
 
 const TenantThemeContext = createContext<TenantThemeContextType | undefined>(undefined);
 
-// Thème par défaut
+// Thème amélioré avec plus de contrastes et cohérent
 const defaultTheme: TenantTheme = {
-  primaryColor: '15 70% 45%', // Terracotta
+  primaryColor: '15 70% 45%', // Terracotta plus vif
   secondaryColor: '35 35% 92%', // Warm Sand
-  accentColor: '42 85% 55%', // African Gold
-  backgroundColor: '35 30% 97%', // Warm cream
-  textColor: '25 40% 15%', // Dark brown
-  buttonColor: '15 70% 45%', // Terracotta
-  linkColor: '15 70% 45%', // Terracotta
+  accentColor: '50 90% 60%', // Gold plus vibrants
+  backgroundColor: '25 35% 97%', // Plus sombre et élégant
+  textColor: '25 40% 15%', // Plus clair
+  buttonColor: '15 90% 60%', // Plus visible
+  linkColor: '15 90% 60%', // Plus visible au survol
+  hoverColor: '15 95% 80%', // Plus clair au hover
+  cardBackground: '255 255 255', // Blanc pur
+  cardForeground: '45 25 95%', // Plus contrast pour la lisibilité
+  borderColor: '200 200 200', // Bordures définies
+  // Shadows plus marqués et visibles
+  dropShadow: '0 4px 12px rgba(0, 0, 0, 0.15)', // Shadows doux et profonds
+  glowEffect: '0 0 20px rgba(255, 255, 255, 0.15)',
 };
 
 export function TenantThemeProvider({ children }: { children: ReactNode }) {

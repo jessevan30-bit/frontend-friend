@@ -188,6 +188,48 @@ export function AfricanStarSymbol({ className, size = 24, animated = true, color
   );
 }
 
+// Symbole Adinkra : Gye Nyame (sauf Dieu)
+export function AdinkraSymbol({ className, size = 24, animated = true, color = 'gradient' }: AfricanSymbolProps) {
+  const colorValue = color === 'gradient' 
+    ? `url(#adinkra-gradient-${size})` 
+    : GABON_COLORS[color];
+  
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      className={cn(animated && 'animate-pulse-glow', className)}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        <linearGradient id={`adinkra-gradient-${size}`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor={GABON_COLORS.green} />
+          <stop offset="50%" stopColor={GABON_COLORS.yellow} />
+          <stop offset="100%" stopColor={GABON_COLORS.blue} />
+        </linearGradient>
+      </defs>
+      {/* Symbole Adinkra stylisé - motif circulaire avec motifs internes */}
+      <circle cx="12" cy="12" r="10" stroke={colorValue} strokeWidth="2" fill="none" />
+      <path
+        d="M12 4 L12 8 M12 16 L12 20 M4 12 L8 12 M16 12 L20 12"
+        stroke={colorValue}
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <circle cx="12" cy="12" r="4" stroke={colorValue} strokeWidth="1.5" fill="none" />
+      <path
+        d="M8 8 L16 16 M16 8 L8 16"
+        stroke={colorValue}
+        strokeWidth="1"
+        strokeLinecap="round"
+      />
+      <circle cx="12" cy="12" r="1.5" fill={colorValue} />
+    </svg>
+  );
+}
+
 // Symbole : Motif géométrique africain
 export function GeometricPatternSymbol({ className, size = 24, animated = true, color = 'gradient' }: AfricanSymbolProps) {
   const colorValue = color === 'gradient' 
@@ -226,7 +268,7 @@ export function AfricanSymbolsDecoration({
   size = 24 
 }: { 
   className?: string; 
-  symbols?: Array<'sankofa' | 'gye-nyame' | 'akoma' | 'gabon-mask' | 'star' | 'geometric'>;
+  symbols?: Array<'sankofa' | 'gye-nyame' | 'akoma' | 'gabon-mask' | 'star' | 'geometric' | 'adinkra'>;
   size?: number;
 }) {
   const symbolComponents = {
@@ -236,6 +278,7 @@ export function AfricanSymbolsDecoration({
     'gabon-mask': GabonMaskSymbol,
     star: AfricanStarSymbol,
     geometric: GeometricPatternSymbol,
+    adinkra: AdinkraSymbol,
   };
 
   return (

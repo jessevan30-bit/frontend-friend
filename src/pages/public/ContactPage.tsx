@@ -6,11 +6,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Phone, Mail, MapPin, Clock, Send, CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
-import { AfricanStarSymbol, AkomaSymbol } from '@/components/african-symbols/AfricanSymbols';
+
 import { HeroSection } from '@/components/public/HeroSection';
 import { getPageHeroImage } from '@/lib/unsplash';
 import { motion } from 'framer-motion';
 import { toast } from '@/hooks/use-toast';
+import { AkomaSymbol } from '@/components/african-symbols/AfricanSymbols';
 
 export default function ContactPage() {
   const { salon } = useTenant();
@@ -58,20 +59,7 @@ export default function ContactPage() {
         description="Nous sommes là pour répondre à toutes vos questions"
         decorativeElements={
           <>
-            <motion.div
-              className="absolute top-8 right-8 opacity-30"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            >
-              <AfricanStarSymbol size={60} animated={true} color="yellow" />
-            </motion.div>
-            <motion.div
-              className="absolute bottom-8 left-8 opacity-25"
-              animate={{ y: [0, 15, 0] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-            >
-              <AkomaSymbol size={48} animated={true} color="yellow" />
-            </motion.div>
+
           </>
         }
       />
@@ -83,7 +71,7 @@ export default function ContactPage() {
             <div className="space-y-6">
               <div>
                 <h2 className="text-3xl font-bold mb-4 flex items-center gap-2">
-                  <AfricanStarSymbol size={32} animated={true} color="gradient" />
+                  <MapPin className="w-8 h-8 text-primary" />
                   Nos coordonnées
                 </h2>
                 <p className="text-muted-foreground mb-6">

@@ -1,14 +1,15 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Clock, Banknote, Calendar, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Clock, Banknote, Calendar, ArrowRight, Search } from 'lucide-react';
 import { getServiceById, getCategoryById } from '@/data/mockData';
 import { HeroSection } from '@/components/public/HeroSection';
 import { AnimatedSection } from '@/components/public/AnimatedSection';
 import { getServiceImage } from '@/lib/unsplash';
 import { useTenant } from '@/contexts/TenantContext';
 import { motion } from 'framer-motion';
-import { AfricanStarSymbol, AkomaSymbol } from '@/components/african-symbols/AfricanSymbols';
+import { AkomaSymbol } from '@/components/african-symbols/AfricanSymbols';
+
 
 export default function ServiceDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -26,7 +27,9 @@ export default function ServiceDetailPage() {
             animate={{ scale: [1, 1.1, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            <AfricanStarSymbol size={64} animated={true} color="gradient" />
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+              <Search className="w-8 h-8 text-primary" />
+            </div>
           </motion.div>
           <h2 className="text-3xl font-bold">Service introuvable</h2>
           <p className="text-muted-foreground text-center max-w-md">
@@ -48,15 +51,7 @@ export default function ServiceDetailPage() {
         backgroundImage={heroImage}
         title={service.name}
         description={service.description || `Découvrez notre service ${service.name}`}
-        decorativeElements={
-          <motion.div
-            className="absolute top-8 right-8 opacity-30"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          >
-            <AfricanStarSymbol size={60} animated={true} color="yellow" />
-          </motion.div>
-        }
+        decorativeElements={null}
       />
 
       {/* Détails du service */}

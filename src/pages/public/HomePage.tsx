@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar, Scissors, Sparkles, ArrowRight, Clock, Banknote, Users, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { mockServices, mockCategories, getCategoryById } from '@/data/mockData';
-import { AfricanStarSymbol, AkomaSymbol, SankofaSymbol, GyeNyameSymbol } from '@/components/african-symbols/AfricanSymbols';
+
 import heroImage from '@/assets/hero-salon.jpg';
 import { HeroSection } from '@/components/public/HeroSection';
 import { AnimatedSection } from '@/components/public/AnimatedSection';
@@ -13,6 +13,8 @@ import { StaggerGrid, StaggerItem } from '@/components/public/StaggerGrid';
 import { ParallaxSection } from '@/components/public/ParallaxSection';
 import { getServiceImage } from '@/lib/unsplash';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
+import { AkomaSymbol, AfricanStarSymbol, SankofaSymbol } from '@/components/african-symbols/AfricanSymbols';
 
 export default function HomePage() {
   const { salon } = useTenant();
@@ -58,142 +60,282 @@ export default function HomePage() {
         }
         decorativeElements={
           <>
-            <motion.div
-              className="absolute top-8 right-8 opacity-30"
-              animate={{
-                y: [0, -20, 0],
-                rotate: [0, 5, -5, 0],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            >
-              <AfricanStarSymbol size={60} animated={true} color="gradient" />
-            </motion.div>
-            <motion.div
-              className="absolute bottom-16 left-8 opacity-25"
-              animate={{
-                y: [0, 15, 0],
-                x: [0, 10, 0],
-              }}
-              transition={{
-                duration: 5,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 1,
-              }}
-            >
-              <SankofaSymbol size={48} animated={true} color="yellow" />
-            </motion.div>
+
+
           </>
         }
       />
 
-      {/* Services en vedette avec animations stagger */}
-      <section className="py-12 lg:py-16 bg-background">
-        <div className="container mx-auto px-4 lg:px-8">
-          <AnimatedSection variant="fadeInUp" className="text-center mb-12 space-y-4">
-            <div className="flex items-center justify-center gap-2">
+      {/* Services en vedette avec design moderne et asymétrique */}
+      <section className="py-16 lg:py-24 bg-gradient-to-br from-background via-secondary/20 to-background relative overflow-hidden">
+        {/* Éléments décoratifs en arrière-plan */}
+        <motion.div
+          className="absolute top-20 left-10 text-primary/10"
+          animate={{ 
+            rotate: [0, 180, 360], 
+            scale: [1, 1.2, 1],
+            y: [0, -30, 0]
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <Scissors className="w-32 h-32" />
+        </motion.div>
+        
+        <motion.div
+          className="absolute bottom-20 right-10 text-secondary/10"
+          animate={{ 
+            rotate: [360, 180, 0], 
+            scale: [1, 1.1, 1],
+            y: [0, 20, 0]
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        >
+          <Clock className="w-24 h-24" />
+        </motion.div>
+        
+        <motion.div
+          className="absolute top-1/2 left-1/4 text-yellow-500/10"
+          animate={{ 
+            scale: [1, 1.5, 1],
+            opacity: [0.1, 0.3, 0.1]
+          }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <Sparkles className="w-24 h-24" />
+        </motion.div>
+
+        {/* Vague décorative */}
+        <motion.div
+          className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-primary/10 to-transparent"
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+        />
+
+        <div className="container mx-auto px-4 lg:px-8 relative z-10">
+          {/* Header de section amélioré */}
+          <AnimatedSection variant="fadeInUp" className="text-center mb-16">
+            <motion.div 
+              className="flex items-center justify-center gap-4 mb-6"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+            >
               <motion.div
                 animate={{ rotate: 360 }}
-                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
               >
-                <AfricanStarSymbol size={32} animated={true} color="gradient" />
+                <AfricanStarSymbol size={40} animated={true} color="gradient" />
               </motion.div>
-              <h2 className="text-4xl font-bold">Nos Services</h2>
+              <h2 className="text-5xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+                Nos Services
+              </h2>
+              <motion.div
+                animate={{ rotate: -360 }}
+                transition={{ duration: 15, repeat: Infinity, ease: "linear", delay: 0.5 }}
+              >
+                <AfricanStarSymbol size={40} animated={true} color="gradient" />
+              </motion.div>
+            </motion.div>
+            
+            <motion.p 
+              className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+            >
+              Découvrez notre gamme complète de services de coiffure professionnels, 
+              conçus pour sublimer votre beauté et répondre à tous vos besoins
+            </motion.p>
+
+
+          </AnimatedSection>
+
+          {/* Services Carousel - Réutilisation du carrousel de la page Services */}
+          <div className="space-y-8 mb-12">
+            <AnimatedSection variant="fadeInUp">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+                  Nos services en vedette
+                </h2>
+                <p className="text-muted-foreground">
+                  Découvrez notre sélection de prestations professionnelles
+                </p>
+              </div>
+
+              {/* Carousel Container - Réutilisation du code de la page Services */}
+              <div className="relative">
+                {/* Navigation buttons */}
+                <>
+                  <motion.button
+                    className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-card/90 backdrop-blur-sm text-foreground p-3 rounded-full shadow-lg border border-border/50"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => {
+                      const carousel = document.getElementById('home-services-carousel');
+                      carousel?.scrollBy({ left: -320, behavior: 'smooth' });
+                    }}
+                  >
+                    <ArrowRight className="w-5 h-5 rotate-180" />
+                  </motion.button>
+                  <motion.button
+                    className="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-card/90 backdrop-blur-sm text-foreground p-3 rounded-full shadow-lg border border-border/50"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => {
+                      const carousel = document.getElementById('home-services-carousel');
+                      carousel?.scrollBy({ left: 320, behavior: 'smooth' });
+                    }}
+                  >
+                    <ArrowRight className="w-5 h-5" />
+                  </motion.button>
+                </>
+                
+                {/* Carousel */}
+                <div 
+                  id="home-services-carousel"
+                  className="flex gap-6 overflow-x-auto pb-6 px-12"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
+                  {featuredServices.map((service, index) => {
+                    const category = getCategoryById(service.categoryId);
+                    const serviceImage = service.image || getServiceImage(service.id, 400, 300);
+                    
+                    return (
+                      <motion.div
+                        key={service.id}
+                        initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                        whileInView={{ 
+                          opacity: 1, 
+                          scale: 1,
+                          y: 0,
+                          transition: { 
+                            delay: index * 0.1,
+                            duration: 0.5,
+                            type: "spring"
+                          }
+                        }}
+                        whileHover={{ 
+                          scale: 1.03,
+                          transition: { type: "spring", stiffness: 400 }
+                        }}
+                        className="flex-shrink-0 w-80"
+                        viewport={{ once: true }}
+                      >
+                        <div className="bg-card/80 backdrop-blur-sm border border-border/30 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300">
+                          {/* Image avec overlay */}
+                          <div className="relative h-44 overflow-hidden">
+                            <motion.img
+                              src={serviceImage}
+                              alt={service.name}
+                              className="w-full h-full object-cover"
+                              whileHover={{ scale: 1.1 }}
+                              transition={{ duration: 0.6 }}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                            
+                            {/* Badges */}
+                            <div className="absolute top-3 left-3 right-3 flex justify-between">
+                              <span
+                                className="px-2 py-1 text-xs font-semibold rounded-full text-white shadow-md"
+                                style={{
+                                  backgroundColor: category?.color || 'hsl(var(--primary))',
+                                }}
+                              >
+                                {category?.name || 'Service'}
+                              </span>
+                              
+                              {service.target && service.target !== 'unisex' && (
+                                <span 
+                                  className={cn(
+                                    "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white",
+                                    service.target === 'homme' && "bg-blue-600",
+                                    service.target === 'femme' && "bg-pink-600",
+                                    service.target === 'enfant' && "bg-yellow-600"
+                                  )}
+                                >
+                                  {service.target === 'homme' && 'H'}
+                                  {service.target === 'femme' && 'F'}
+                                  {service.target === 'enfant' && 'E'}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Contenu */}
+                          <div className="p-4">
+                            <h3 className="font-semibold text-base mb-2 group-hover:text-primary transition-colors">
+                              {service.name}
+                            </h3>
+                            
+                            {service.description && (
+                              <p className="text-xs text-muted-foreground mb-4 line-clamp-2">
+                                {service.description}
+                              </p>
+                            )}
+                            
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Banknote className="w-4 h-4 text-primary" />
+                                <span className="font-bold text-primary">{service.price}€</span>
+                              </div>
+                              
+                              <Link to="/public/booking">
+                                <Button size="sm" className="gap-1 shadow-sm hover:shadow-md">
+                                  Réserver
+                                  <ArrowRight className="w-3 h-3" />
+                                </Button>
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Bouton voir tous */}
+              <div className="text-center mt-8">
+                <Link to="/public/services">
+                  <Button size="lg" className="gap-2 shadow-lg hover:shadow-glow-primary">
+                    Voir tous les services
+                    <ArrowRight className="w-5 h-5" />
+                  </Button>
+                </Link>
+              </div>
+            </AnimatedSection>
+          </div>
+
+          {/* Section catégories harmonisée */}
+          <div className="bg-gradient-to-br from-card/80 to-background/60 backdrop-blur-xl rounded-2xl p-8 border border-border shadow-xl">
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent mb-2">
+                Catégories de services
+              </h3>
+              <p className="text-muted-foreground">
+                Explorez nos spécialités
+              </p>
             </div>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Découvrez notre gamme complète de services de coiffure pour tous vos besoins
-            </p>
-          </AnimatedSection>
+            
+            <div className="flex flex-wrap justify-center gap-4">
+              {mockCategories.map((category, index) => (
+                <motion.button
+                  key={category.id}
+                  className="px-6 py-3 bg-card/60 backdrop-blur-sm border border-border rounded-full text-muted-foreground hover:border-primary hover:text-primary transition-all hover:shadow-md"
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  {category.name}
+                </motion.button>
+              ))}
+            </div>
+          </div>
 
-          <StaggerGrid columns={3}>
-            {featuredServices.map((service, index) => {
-              const category = getCategoryById(service.categoryId);
-              const serviceImage = service.image || getServiceImage(service.id, 800, 600);
-              return (
-                <StaggerItem key={service.id}>
-                  <AnimatedCard delay={index * 0.1} hover className="overflow-hidden">
-                    {/* Image du service */}
-                    <div className="relative h-48 overflow-hidden bg-secondary">
-                      <motion.img
-                        src={serviceImage}
-                        alt={service.name}
-                        className="w-full h-full object-cover"
-                        whileHover={{ scale: 1.1 }}
-                        transition={{ duration: 0.5 }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-foreground/20 to-transparent" />
-                      <div className="absolute top-3 right-3">
-                        <motion.div
-                          animate={{ rotate: [0, 360] }}
-                          transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                        >
-                          <AkomaSymbol size={20} animated={true} color="yellow" />
-                        </motion.div>
-                      </div>
-                      {/* Badge catégorie sur l'image */}
-                      <div className="absolute bottom-3 left-3">
-                        <span
-                          className="px-3 py-1 text-xs font-medium rounded-full shadow-lg backdrop-blur-sm"
-                          style={{
-                            backgroundColor: category?.color || 'hsl(var(--muted))',
-                            color: 'white',
-                          }}
-                        >
-                          {category?.name || 'Sans catégorie'}
-                        </span>
-                      </div>
-                    </div>
 
-                    <div className="p-5">
-                      <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">
-                        {service.name}
-                      </h3>
-                      {service.description && (
-                        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                          {service.description}
-                        </p>
-                      )}
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Clock className="w-4 h-4" />
-                          <span className="text-sm">{service.duration} min</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-primary font-bold text-lg">
-                          <Banknote className="w-4 h-4" />
-                          {service.price} FCFA
-                        </div>
-                      </div>
-                      <Link to={`/public/services/${service.id}`}>
-                        <Button className="w-full mb-2 gap-2" variant="outline">
-                          Voir détails
-                          <ArrowRight className="w-4 h-4" />
-                        </Button>
-                      </Link>
-                      <Link to="/public/booking" state={{ serviceId: service.id }}>
-                        <Button className="w-full gap-2">
-                          Réserver
-                          <ArrowRight className="w-4 h-4" />
-                        </Button>
-                      </Link>
-                    </div>
-                  </AnimatedCard>
-                </StaggerItem>
-              );
-            })}
-          </StaggerGrid>
-
-          <AnimatedSection variant="fadeInUp" delay={0.3} className="text-center mt-12">
-            <Link to="/public/services">
-              <Button size="lg" variant="outline" className="gap-2">
-                Voir tous les services
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </Link>
-          </AnimatedSection>
         </div>
       </section>
 
@@ -206,7 +348,7 @@ export default function HomePage() {
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               Excellence, professionnalisme et passion pour votre beauté
             </p>
-          </AnimatedSection>
+          </AnimatedSection> 
 
           <StaggerGrid columns={3}>
             {[
@@ -214,7 +356,7 @@ export default function HomePage() {
                 icon: <Sparkles className="w-8 h-8 text-primary" />,
                 title: 'Expertise',
                 description: 'Des professionnels qualifiés avec des années d\'expérience',
-                symbol: <AfricanStarSymbol size={24} animated={true} color="gradient" />,
+                symbol: <Sparkles className="w-6 h-6 text-primary" />,
                 color: 'from-green-500/20 to-yellow-500/20',
               },
               {
@@ -248,13 +390,7 @@ export default function HomePage() {
                         {feature.icon}
                       </div>
                     </motion.div>
-                    <motion.div
-                      className="flex justify-center mb-3"
-                      animate={{ y: [0, -5, 0] }}
-                      transition={{ duration: 2, repeat: Infinity, delay: index * 0.3 }}
-                    >
-                      {feature.symbol}
-                    </motion.div>
+
                     <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
                     <p className="text-muted-foreground">{feature.description}</p>
                   </div>
@@ -273,13 +409,7 @@ export default function HomePage() {
           <div className="container mx-auto px-4 lg:px-8 relative z-10">
             {/* CTA */}
             <AnimatedSection variant="scaleIn" className="text-center space-y-6">
-              <motion.div
-                className="flex justify-center mb-4"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              >
-                <GyeNyameSymbol size={48} animated={true} color="yellow" />
-              </motion.div>
+
               <h2 className="text-4xl font-bold text-white drop-shadow-lg">Prêt à prendre rendez-vous ?</h2>
               <p className="text-xl text-white/95 max-w-2xl mx-auto drop-shadow-md">
                 Réservez votre créneau dès maintenant et laissez-nous prendre soin de vous
