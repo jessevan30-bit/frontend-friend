@@ -9,6 +9,7 @@ import { getServiceImage } from '@/lib/unsplash';
 import { useTenant } from '@/contexts/TenantContext';
 import { motion } from 'framer-motion';
 import { AkomaSymbol } from '@/components/african-symbols/AfricanSymbols';
+import { formatPrice } from '@/lib/utils';
 
 
 export default function ServiceDetailPage() {
@@ -121,7 +122,7 @@ export default function ServiceDetailPage() {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Prix</p>
-                    <p className="text-2xl font-bold text-primary">{service.price} FCFA</p>
+                    <p className="text-2xl font-bold text-primary">{formatPrice(service.price, salon?.currency)}</p>
                   </div>
                 </motion.div>
               </div>

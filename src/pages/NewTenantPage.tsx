@@ -25,7 +25,7 @@ export default function NewTenantPage() {
     email: '',
     phone: '',
     address: '',
-    openingHours: '8h00 - 18h00',
+    opening_hours: '8h00 - 18h00',
     currency: 'XAF',
     timezone: 'Africa/Libreville',
   });
@@ -218,14 +218,14 @@ export default function NewTenantPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="openingHours" className="text-sm font-medium">
+                <Label htmlFor="opening_hours" className="text-sm font-medium">
                   Heures d'ouverture
                 </Label>
                 <Input
-                  id="openingHours"
+                  id="opening_hours"
                   placeholder="Ex: 8h00 - 18h00"
-                  value={formData.openingHours}
-                  onChange={(e) => handleChange('openingHours', e.target.value)}
+                  value={formData.opening_hours}
+                  onChange={(e) => handleChange('opening_hours', e.target.value)}
                   className="h-11"
                 />
               </div>

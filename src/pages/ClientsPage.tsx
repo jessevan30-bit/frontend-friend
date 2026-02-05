@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAppointments } from '@/contexts/AppointmentsContext';
+import { useClients, useEmployees, useServices } from '@/hooks/useApi';
 import { AkomaSymbol, AfricanStarSymbol } from '@/components/african-symbols/AfricanSymbols';
 import { 
   Dialog, 
@@ -22,7 +22,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { mockEmployees, mockServices, mockSalon } from '@/data/mockData';
 import { toast } from '@/hooks/use-toast';
 
 const timeSlots = [
@@ -32,11 +31,20 @@ const timeSlots = [
 ];
 
 export default function ClientsPage() {
-  const { clients, addAppointment } = useAppointments();
+  // Utiliser les hooks React Query
+  const { data: clientsData } = useClients();
+  const { data: employeesData } = useEmployees();
+  const { data: servicesData } = useServices();
+  
+  // Extraire les tableaux des réponses paginées
+  const clients = clientsData?.results || [];
+  const employees = employeesData?.results || [];
+  const services = servicesData?.results || [];
+  
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
   const [isAppointmentDialogOpen, setIsAppointmentDialogOpen] = useState(false);
   const [showWhatsAppSimulation, setShowWhatsAppSimulation] = useState(false);
   const [whatsAppMessages, setWhatsAppMessages] = useState<Array<{text: string; sender: 'salon' | 'client'; time: string}>>([]);
@@ -50,10 +58,10 @@ export default function ClientsPage() {
     source: 'website' as 'website' | 'whatsapp' | 'phone' | 'walk_in',
   });
 
-  const coiffeurs = mockEmployees.filter(e => e.role === 'coiffeur');
+  const coiffeurs = employees.filter(e => e.role === 'COIFFEUR');
 
   const filteredClients = clients.filter(client => 
-    `${client.firstName} ${client.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    `${client.first_name} ${client.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.phone.includes(searchQuery)
   );
@@ -146,15 +154,15 @@ export default function ClientsPage() {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 gradient-gabon flex items-center justify-center font-bold text-lg rounded-full shadow-md group-hover:shadow-glow group-hover:scale-110 transition-all duration-300 relative">
-                    <span className="z-10">{client.firstName[0]}{client.lastName[0]}</span>
+                    <span className="z-10">{client.first_name[0]}{client.last_name[0]}</span>
                     <div className="absolute -top-1 -right-1 opacity-80">
                       <AfricanStarSymbol size={12} animated={true} color="yellow" />
                     </div>
                   </div>
                   <div>
-                    <h3 className="font-bold group-hover:text-primary transition-colors">{client.firstName} {client.lastName}</h3>
+                    <h3 className="font-bold group-hover:text-primary transition-colors">{client.first_name} {client.last_name}</h3>
                     <p className="text-sm text-muted-foreground">
-                      Client depuis {new Date(client.createdAt).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+                      Client depuis {new Date(client.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
                     </p>
                   </div>
                 </div>
@@ -172,12 +180,6 @@ export default function ClientsPage() {
                   <Phone className="w-4 h-4" />
                   <span>{client.phone}</span>
                 </div>
-                {client.lastVisit && (
-                  <div className="flex items-center gap-2 text-muted-foreground group-hover:translate-x-1 transition-transform delay-100">
-                    <Calendar className="w-4 h-4" />
-                    <span>Dernière visite: {new Date(client.lastVisit).toLocaleDateString('fr-FR')}</span>
-                  </div>
-                )}
               </div>
 
               <div className="mt-4 pt-4 border-t border-border flex gap-2">
@@ -291,7 +293,7 @@ export default function ClientsPage() {
                       setShowWhatsAppSimulation(true);
                       
                       // Initialiser les messages
-                      const initialMessage = `Bonjour ${client.firstName},\n\nJe vous contacte concernant une réservation au ${mockSalon.name}.\n\nPouvez-vous me confirmer vos disponibilités ?\n\nMerci !`;
+                      const initialMessage = `Bonjour ${client.first_name},\n\nJe vous contacte concernant une réservation.\n\nPouvez-vous me confirmer vos disponibilités ?\n\nMerci !`;
                       setWhatsAppMessages([{
                         text: initialMessage,
                         sender: 'salon',
@@ -327,50 +329,29 @@ export default function ClientsPage() {
                   return;
                 }
 
-                try {
-                  const newAppointment = addAppointment({
-                    clientId: selectedClientId,
-                    serviceId: appointmentForm.serviceId,
-                    employeeId: appointmentForm.employeeId,
-                    salonId: mockSalon.id,
-                    date: appointmentForm.date,
-                    startTime: appointmentForm.startTime,
-                    notes: appointmentForm.notes || undefined,
-                    source: appointmentForm.source,
-                  });
+                // TODO: Implémenter la création de rendez-vous via API
+                toast({
+                  title: "Fonctionnalité en cours de développement",
+                  description: "La création de rendez-vous sera bientôt disponible.",
+                });
 
-                  toast({
-                    title: "Rendez-vous créé",
-                    description: "Le rendez-vous a été créé avec succès.",
-                  });
-
-                  setIsAppointmentDialogOpen(false);
-                  setAppointmentForm({
-                    serviceId: '',
-                    employeeId: '',
-                    date: new Date().toISOString().split('T')[0],
-                    startTime: '',
-                    notes: '',
-                    source: 'website',
-                  });
-                  setSelectedClientId(null);
-                  
-                  // Rediriger vers la page des rendez-vous
-                  navigate('/appointments');
-                } catch (error) {
-                  toast({
-                    title: "Erreur",
-                    description: "Une erreur est survenue lors de la création du rendez-vous.",
-                    variant: "destructive",
-                  });
-                }
+                setIsAppointmentDialogOpen(false);
+                setAppointmentForm({
+                  serviceId: '',
+                  employeeId: '',
+                  date: new Date().toISOString().split('T')[0],
+                  startTime: '',
+                  notes: '',
+                  source: 'website',
+                });
+                setSelectedClientId(null);
               }}
               className="space-y-4"
             >
               <div className="space-y-2">
                 <Label>Client</Label>
                 <Input 
-                  value={selectedClientId ? clients.find(c => c.id === selectedClientId)?.firstName + ' ' + clients.find(c => c.id === selectedClientId)?.lastName : ''}
+                  value={selectedClientId ? clients.find(c => c.id === selectedClientId)?.first_name + ' ' + clients.find(c => c.id === selectedClientId)?.last_name : ''}
                   disabled
                   className="bg-muted"
                 />
@@ -386,8 +367,8 @@ export default function ClientsPage() {
                     <SelectValue placeholder="Sélectionner un service" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockServices.filter(s => s.isActive).map(service => (
-                      <SelectItem key={service.id} value={service.id}>
+                    {services.filter(s => s.is_active).map(service => (
+                      <SelectItem key={service.id} value={service.id.toString()}>
                         {service.name} - {service.price.toLocaleString()} FCFA ({service.duration} min)
                       </SelectItem>
                     ))}
@@ -406,8 +387,8 @@ export default function ClientsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {coiffeurs.map(emp => (
-                      <SelectItem key={emp.id} value={emp.id}>
-                        {emp.firstName} {emp.lastName}
+                      <SelectItem key={emp.id} value={emp.id.toString()}>
+                        {emp.first_name} {emp.last_name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -492,7 +473,7 @@ export default function ClientsPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold">
-                      {clients.find(c => c.id === selectedClientId)?.firstName} {clients.find(c => c.id === selectedClientId)?.lastName}
+                      {clients.find(c => c.id === selectedClientId)?.first_name} {clients.find(c => c.id === selectedClientId)?.last_name}
                     </h3>
                     <p className="text-xs text-white/80">en ligne</p>
                   </div>

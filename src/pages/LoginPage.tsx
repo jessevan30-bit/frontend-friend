@@ -7,11 +7,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { LogIn, Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { mockSalon } from '@/data/mockData';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('admin@salon-mireille.ga');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('naoadmin@gmail.com');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
@@ -66,10 +65,10 @@ export default function LoginPage() {
           <div className="bg-sidebar p-6 text-center">
             <div className="flex justify-center mb-3">
               <div className="w-12 h-12 bg-sidebar-accent rounded-full flex items-center justify-center">
-                <span className="text-xl font-bold text-sidebar-foreground">SM</span>
+                <span className="text-xl font-bold text-sidebar-foreground">SC</span>
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-sidebar-foreground mb-1">{mockSalon.name}</h1>
+            <h1 className="text-2xl font-bold text-sidebar-foreground mb-1">SaaS Coiffure</h1>
             <p className="text-sidebar-foreground/80 text-xs">Espace d'administration</p>
           </div>
 

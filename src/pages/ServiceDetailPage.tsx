@@ -1,20 +1,42 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Clock, Banknote, Scissors, Pencil, Trash2, CheckCircle2, XCircle } from 'lucide-react';
-import { mockServices, mockCategories, getCategoryById, getServiceById } from '@/data/mockData';
-import { cn } from '@/lib/utils';
+import { ArrowLeft, Clock, Banknote, Scissors, Pencil, Trash2, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { cn, formatPrice } from '@/lib/utils';
 import { AfricanStarSymbol } from '@/components/african-symbols/AfricanSymbols';
-import { getServiceImage } from '@/lib/unsplash';
 import { motion } from 'framer-motion';
+import { apiClient } from '@/lib/api-client';
+import type { Service } from '@/types';
+import { useTenant } from '@/contexts/TenantContext';
 
 export default function ServiceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const service = id ? getServiceById(id) : null;
-  const category = service ? getCategoryById(service.categoryId) : null;
+  const { salon } = useTenant();
 
-  if (!service) {
+  const { data: service, isLoading, isError } = useQuery<Service>({
+    queryKey: ['service', id],
+    queryFn: async () => {
+      const response = await apiClient.get(`/services/${id}/`);
+      return response.data;
+    },
+    enabled: !!id,
+  });
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center py-12 space-y-4">
+          <Loader2 className="w-16 h-16 text-primary animate-spin" />
+          <h2 className="text-2xl font-bold">Chargement du service...</h2>
+          <p className="text-muted-foreground">Veuillez patienter.</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (isError || !service) {
     return (
       <DashboardLayout>
         <div className="flex flex-col items-center justify-center py-12 space-y-4">
@@ -29,6 +51,8 @@ export default function ServiceDetailPage() {
       </DashboardLayout>
     );
   }
+
+  const category = service.category;
 
   return (
     <DashboardLayout>
@@ -56,36 +80,38 @@ export default function ServiceDetailPage() {
 
         {/* Image principale du service */}
         <div className="relative h-96 rounded-xl overflow-hidden bg-secondary group">
-          <motion.img
-            src={service.image || getServiceImage(service.id, 1920, 800)}
-            alt={service.name}
-            className="w-full h-full object-cover"
-            initial={{ scale: 1.1 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.8 }}
-          />
+          {service.image ? (
+            <motion.img
+              src={service.image}
+              alt={service.name}
+              className="w-full h-full object-cover"
+              initial={{ scale: 1.1 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.8 }}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-muted">
+              <Scissors className="w-24 h-24 text-muted-foreground" />
+            </div>
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-foreground/90 via-foreground/50 to-transparent" />
           <div className="absolute inset-0 pattern-gabon opacity-10" />
           <div className="absolute bottom-8 left-8 right-8">
             <div className="flex items-center gap-3 mb-4">
-              <span
-                className="px-4 py-2 text-sm font-medium rounded-full shadow-lg backdrop-blur-sm"
-                style={{
-                  backgroundColor: category?.color || 'hsl(var(--muted))',
-                  color: 'white',
-                }}
-              >
-                {category?.name || 'Sans catégorie'}
-              </span>
+              {category && typeof category === 'object' && (
+                <span className="px-4 py-2 text-sm font-medium rounded-full shadow-lg backdrop-blur-sm bg-primary text-primary-foreground">
+                  {category.name}
+                </span>
+              )}
               <div
                 className={cn(
                   "px-4 py-2 text-sm font-medium rounded-full backdrop-blur-sm",
-                  service.isActive
+                  service.is_active
                     ? "bg-primary/20 text-primary border border-primary/30"
                     : "bg-muted/50 text-muted-foreground"
                 )}
               >
-                {service.isActive ? (
+                {service.is_active ? (
                   <span className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4" />
                     Actif
@@ -96,6 +122,16 @@ export default function ServiceDetailPage() {
                     Inactif
                   </span>
                 )}
+              </div>
+              <div
+                className={cn(
+                  "px-4 py-2 text-sm font-medium rounded-full backdrop-blur-sm",
+                  service.is_published
+                    ? "bg-blue-500/20 text-blue-500 border border-blue-500/30"
+                    : "bg-muted/50 text-muted-foreground"
+                )}
+              >
+                {service.is_published ? 'Publié' : 'Non publié'}
               </div>
             </div>
             <h2 className="text-4xl font-bold text-white drop-shadow-lg">{service.name}</h2>
@@ -153,9 +189,21 @@ export default function ServiceDetailPage() {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Prix</p>
-                    <p className="text-lg font-semibold text-primary">{service.price} FCFA</p>
+                    <p className="text-lg font-semibold text-primary">{formatPrice(service.price, salon?.currency)}</p>
                   </div>
                 </div>
+
+                {service.target_display && (
+                  <div className="flex items-center gap-3 p-4 bg-secondary/50 rounded-lg">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <AfricanStarSymbol size={20} color="gradient" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Cible</p>
+                      <p className="text-lg font-semibold">{service.target_display}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -186,7 +234,7 @@ export default function ServiceDetailPage() {
                 <p className="text-sm text-muted-foreground">Rendez-vous</p>
               </div>
               <div className="p-4 bg-secondary/50 rounded-lg text-center">
-                <p className="text-2xl font-bold text-primary">0 FCFA</p>
+                <p className="text-2xl font-bold text-primary">{formatPrice(0, salon?.currency)}</p>
                 <p className="text-sm text-muted-foreground">Revenus</p>
               </div>
               <div className="p-4 bg-secondary/50 rounded-lg text-center">

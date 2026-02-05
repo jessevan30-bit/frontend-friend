@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { Plus, Scissors, Users, User, UserCircle, Baby } from 'lucide-react';
+import { Plus, Scissors } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { mockServices as initialServices, mockCategories, getCategoryById } from '@/data/mockData';
 import { ServiceCard } from '@/components/services';
 import { 
   Dialog, 
@@ -22,21 +21,88 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { Service } from '@/types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import apiClient from '@/lib/api-client';
+import { toast } from '@/hooks/use-toast';
 
 export default function ServicesPage() {
-  const [services, setServices] = useState<Service[]>(initialServices);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedTarget, setSelectedTarget] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
 
-  const handlePublishChange = (service: Service, isPublished: boolean) => {
-    setServices(services.map(s => s.id === service.id ? { ...s, isPublished } : s));
+  // Récupérer les services depuis l'API
+  const { data: services = [], isLoading } = useQuery<Service[]>({
+    queryKey: ['services'],
+    queryFn: async () => {
+      const response = await apiClient.get('/services/');
+      // DRF peut retourner un objet paginé ou un tableau
+      return Array.isArray(response.data) ? response.data : (response.data.results || []);
+    },
+  });
+
+  // Récupérer les catégories depuis l'API
+  const { data: categories = [] } = useQuery({
+    queryKey: ['serviceCategories'],
+    queryFn: async () => {
+      const response = await apiClient.get('/services/categories/');
+      return Array.isArray(response.data) ? response.data : (response.data.results || []);
+    },
+  });
+
+  const handleTogglePublish = async (service: Service) => {
+    try {
+      const response = await apiClient.post(`/services/${service.id}/toggle_published/`);
+      
+      toast({
+        title: service.is_published ? "Service dépublié" : "Service publié",
+        description: `"${service.name}" est maintenant ${service.is_published ? "hors ligne" : "en ligne"}.`,
+      });
+
+      // Invalider le cache pour refresh
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+    } catch (error) {
+      console.error('Error toggling publish:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier le statut de publication.",
+        variant: "destructive",
+      });
+    }
   };
 
+  const handleDeleteService = async (service: Service) => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer "${service.name}" ?`)) {
+      return;
+    }
+
+    try {
+      await apiClient.delete(`/services/${service.id}/`);
+      
+      toast({
+        title: "Service supprimé",
+        description: `"${service.name}" a été supprimé avec succès.`,
+      });
+
+      // Invalider le cache pour refresh
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+    } catch (error) {
+      console.error('Error deleting service:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le service.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Filtrer les services
   const filteredServices = services.filter(s => {
-    const matchesCategory = selectedCategory === 'all' || s.categoryId === selectedCategory;
-    const matchesTarget = selectedTarget === 'all' || (s.target === selectedTarget && s.target !== 'unisex');
-    return matchesCategory && matchesTarget;
+    const matchesCategory = selectedCategory === 'all' || s.category?.id.toString() === selectedCategory;
+    const matchesTarget = selectedTarget === 'all' || s.target === selectedTarget;
+    const matchesSearch = !searchQuery || s.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesTarget && matchesSearch;
   });
 
   return (
@@ -78,23 +144,9 @@ export default function ServicesPage() {
                         <SelectValue placeholder="Sélectionner une catégorie" />
                       </SelectTrigger>
                       <SelectContent>
-                        {mockCategories.map(cat => (
-                          <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                        {categories.map(cat => (
+                          <SelectItem key={cat.id} value={cat.id.toString()}>{cat.name}</SelectItem>
                         ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Type de client</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner un type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="homme">Homme</SelectItem>
-                        <SelectItem value="femme">Femme</SelectItem>
-                        <SelectItem value="enfant">Enfant</SelectItem>
-                        <SelectItem value="unisex">Unisex</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -105,8 +157,8 @@ export default function ServicesPage() {
                     <Input id="duration" type="number" placeholder="30" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="price">Prix (FCFA)</Label>
-                    <Input id="price" type="number" placeholder="25" />
+                    <Label htmlFor="price">Prix (XAF)</Label>
+                    <Input id="price" type="number" placeholder="25000" />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -124,8 +176,19 @@ export default function ServicesPage() {
           </Dialog>
         </div>
 
-        {/* Filtres compacts */}
+        {/* Barre de recherche et filtres */}
         <div className="bg-card border border-border rounded-lg p-4 space-y-4">
+          {/* Recherche */}
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Rechercher</Label>
+            <Input
+              placeholder="Rechercher un service..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-9"
+            />
+          </div>
+
           {/* Filtre par catégorie */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -141,22 +204,13 @@ export default function ServicesPage() {
               >
                 Toutes
               </Button>
-              {mockCategories.map((category) => (
+              {categories.map((category) => (
                 <Button
                   key={category.id}
-                  variant={selectedCategory === category.id ? 'default' : 'outline'}
+                  variant={selectedCategory === category.id.toString() ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => setSelectedCategory(category.id)}
+                  onClick={() => setSelectedCategory(category.id.toString())}
                   className="h-7 text-xs px-2"
-                  style={
-                    selectedCategory === category.id
-                      ? {
-                          backgroundColor: category.color,
-                          color: 'white',
-                          borderColor: category.color,
-                        }
-                      : undefined
-                  }
                 >
                   {category.name}
                 </Button>
@@ -164,11 +218,11 @@ export default function ServicesPage() {
             </div>
           </div>
 
-          {/* Filtre par type de client */}
+          {/* Filtre par cible */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Users className="w-3.5 h-3.5 text-muted-foreground" />
-              <Label className="text-xs font-medium">Type de client</Label>
+              <Scissors className="w-3.5 h-3.5 text-muted-foreground" />
+              <Label className="text-xs font-medium">Cible</Label>
             </div>
             <div className="flex flex-wrap gap-1.5">
               <Button
@@ -177,49 +231,45 @@ export default function ServicesPage() {
                 onClick={() => setSelectedTarget('all')}
                 className="h-7 text-xs px-2"
               >
-                Tous
-              </Button>
-              <Button
-                variant={selectedTarget === 'homme' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedTarget('homme')}
-                className={cn(
-                  "h-7 text-xs px-2",
-                  selectedTarget === 'homme' && "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
-                )}
-              >
-                <User className="w-3 h-3 mr-1" />
-                Homme
+                Toutes
               </Button>
               <Button
                 variant={selectedTarget === 'femme' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedTarget('femme')}
-                className={cn(
-                  "h-7 text-xs px-2",
-                  selectedTarget === 'femme' && "bg-pink-600 hover:bg-pink-700 text-white border-pink-600"
-                )}
+                className="h-7 text-xs px-2"
               >
-                <UserCircle className="w-3 h-3 mr-1" />
                 Femme
               </Button>
               <Button
-                variant={selectedTarget === 'enfant' ? 'default' : 'outline'}
+                variant={selectedTarget === 'homme' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setSelectedTarget('enfant')}
-                className={cn(
-                  "h-7 text-xs px-2",
-                  selectedTarget === 'enfant' && "bg-yellow-600 hover:bg-yellow-700 text-white border-yellow-600"
-                )}
+                onClick={() => setSelectedTarget('homme')}
+                className="h-7 text-xs px-2"
               >
-                <Baby className="w-3 h-3 mr-1" />
-                Enfant
+                Homme
+              </Button>
+              <Button
+                variant={selectedTarget === 'enfant_fille' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedTarget('enfant_fille')}
+                className="h-7 text-xs px-2"
+              >
+                Enfant (Fille)
+              </Button>
+              <Button
+                variant={selectedTarget === 'enfant_garcon' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedTarget('enfant_garcon')}
+                className="h-7 text-xs px-2"
+              >
+                Enfant (Garçon)
               </Button>
             </div>
           </div>
 
           {/* Résumé des filtres actifs */}
-          {(selectedCategory !== 'all' || selectedTarget !== 'all') && (
+          {(selectedCategory !== 'all' || selectedTarget !== 'all' || searchQuery) && (
             <div className="flex items-center justify-between pt-2 border-t border-border">
               <span className="text-xs text-muted-foreground">
                 {filteredServices.length} service{filteredServices.length > 1 ? 's' : ''} trouvé{filteredServices.length > 1 ? 's' : ''}
@@ -227,43 +277,41 @@ export default function ServicesPage() {
               <Button
                 variant="ghost"
                 size="sm"
+                className="h-6 text-xs"
                 onClick={() => {
                   setSelectedCategory('all');
                   setSelectedTarget('all');
+                  setSearchQuery('');
                 }}
-                className="h-6 text-xs px-2"
               >
-                Réinitialiser
+                Réinitialiser les filtres
               </Button>
             </div>
           )}
         </div>
 
-        {/* Services grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredServices.map((service, index) => {
-            const category = getCategoryById(service.categoryId);
-            
-            return (
-              <ServiceCard
-                key={service.id}
+        {/* Affichage des services */}
+        {isLoading ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Chargement des services...</p>
+          </div>
+        ) : filteredServices.length === 0 ? (
+          <div className="text-center py-12">
+            <Scissors className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">Aucun service trouvé</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredServices.map((service) => (
+              <ServiceCard 
+                key={service.id} 
                 service={service}
-                category={category}
-                variant="admin"
-                index={index}
-                onPublishChange={handlePublishChange}
-                onEdit={(service) => {
-                  // TODO: Implémenter l'édition
-                  console.log('Éditer service:', service);
-                }}
-                onDelete={(service) => {
-                  // TODO: Implémenter la suppression
-                  console.log('Supprimer service:', service);
-                }}
+                onTogglePublish={() => handleTogglePublish(service)}
+                onDelete={() => handleDeleteService(service)}
               />
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

@@ -4,7 +4,7 @@ import { Service } from '@/types';
 import { ServiceCategory } from '@/types';
 import { Clock, Banknote, Scissors, Pencil, Trash2, ArrowRight, MoreHorizontal, Eye, User, UserCircle, Baby, Sparkles, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, formatPrice } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AkomaSymbol } from '@/components/african-symbols/AfricanSymbols';
@@ -19,6 +19,8 @@ interface ServiceCardProps {
   onDelete?: (service: Service) => void;
   onReserve?: (service: Service) => void;
   onPublishChange?: (service: Service, isPublished: boolean) => void;
+  onTogglePublish?: () => void;
+  currency?: string; // Devise du salon
   className?: string;
 }
 
@@ -31,6 +33,8 @@ export function ServiceCard({
   onDelete,
   onReserve,
   onPublishChange,
+  onTogglePublish,
+  currency = 'XAF',
   className,
 }: ServiceCardProps) {
   const isAdmin = variant === 'admin';
@@ -121,7 +125,7 @@ export function ServiceCard({
             {category?.name || 'Sans catégorie'}
           </motion.span>
           
-          {service.target && service.target !== 'unisex' && (
+          {service.target && (
             <motion.span
               className={cn(
                 "px-3 py-1 text-xs font-medium rounded-full shadow-lg backdrop-blur-sm flex items-center gap-1 border border-white/20",
@@ -255,7 +259,7 @@ export function ServiceCard({
             )}
             whileHover={{ scale: 1.1 }}
           >
-            {service.price} FCFA
+            {formatPrice(Number(service.price) || 0, currency)}
           </motion.span>
           {/* Indicateur de popularité */}
           {isPublic && (
@@ -277,22 +281,22 @@ export function ServiceCard({
           <div
             className={cn(
               "inline-block px-3 py-1 text-xs font-medium rounded-full",
-              service.isActive
+              service.is_active || service.isActive
                 ? "bg-primary/10 text-primary"
                 : "bg-muted text-muted-foreground"
             )}
           >
-            {service.isActive ? '● Actif' : '○ Inactif'}
+            {(service.is_active || service.isActive) ? '● Actif' : '○ Inactif'}
           </div>
           <div className="flex items-center space-x-2">
             <Switch
               id={`publish-${service.id}`}
-              checked={service.isPublished}
-              onCheckedChange={(isPublished) => onPublishChange?.(service, isPublished)}
+              checked={service.is_published || service.isPublished}
+              onCheckedChange={() => onTogglePublish?.()}
               aria-label="Publier le service"
             />
             <Label htmlFor={`publish-${service.id}`} className="text-sm">
-              Publié
+              Publié sur le site
             </Label>
           </div>
         </div>

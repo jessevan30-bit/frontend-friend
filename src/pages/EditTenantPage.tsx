@@ -15,6 +15,8 @@ import {
 import { toast } from '@/hooks/use-toast';
 import { Salon } from '@/types';
 import { motion } from 'framer-motion';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import apiClient from '@/lib/api-client';
 
 // Mock data - Dans une vraie app, cela viendrait de l'API
 const mockTenantData = {
@@ -24,110 +26,81 @@ const mockTenantData = {
     email: 'contact@salon-mireille.ga',
     phone: '+241 06 12 34 56 78',
     address: 'Avenue Léon Mba, Libreville, Gabon',
-    openingHours: '8h00 - 18h00',
+    opening_hours: '8h00 - 18h00',
     currency: 'XAF',
     timezone: 'Africa/Libreville',
     logo: '',
-    heroImage: '',
-  },
-  'tenant-2': {
-    id: 'tenant-2',
-    name: 'Coiffure Awa',
-    email: 'contact@coiffure-awa.ga',
-    phone: '+241 06 23 45 67 89',
-    address: 'Boulevard Triomphal, Libreville, Gabon',
-    openingHours: '9h00 - 19h00',
-    currency: 'XAF',
-    timezone: 'Africa/Libreville',
-    logo: '',
-    heroImage: '',
-  },
-  'tenant-3': {
-    id: 'tenant-3',
-    name: 'Studio Koffi',
-    email: 'contact@studio-koffi.ga',
-    phone: '+241 06 34 56 78 90',
-    address: 'Quartier Louis, Port-Gentil, Gabon',
-    openingHours: '8h00 - 18h00',
-    currency: 'XAF',
-    timezone: 'Africa/Libreville',
-    logo: '',
-    heroImage: '',
-  },
-  'tenant-4': {
-    id: 'tenant-4',
-    name: 'Salon Fatou',
-    email: 'contact@salon-fatou.ga',
-    phone: '+241 06 45 67 89 01',
-    address: 'Avenue de la République, Libreville, Gabon',
-    openingHours: '8h00 - 17h00',
-    currency: 'XAF',
-    timezone: 'Africa/Libreville',
-    logo: '',
-    heroImage: '',
-  },
-  'tenant-5': {
-    id: 'tenant-5',
-    name: 'Beauté Mba',
-    email: 'contact@beaute-mba.ga',
-    phone: '+241 06 56 78 90 12',
-    address: 'Centre-ville, Franceville, Gabon',
-    openingHours: '9h00 - 19h00',
-    currency: 'XAF',
-    timezone: 'Africa/Libreville',
-    logo: '',
-    heroImage: '',
   },
 };
 
 export default function EditTenantPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingData, setIsLoadingData] = useState(true);
   const [formData, setFormData] = useState<Partial<Salon>>({
     name: '',
     email: '',
     phone: '',
     address: '',
-    openingHours: '8h00 - 18h00',
+    opening_hours: '8h00 - 18h00',
     currency: 'XAF',
     timezone: 'Africa/Libreville',
     logo: '',
-    heroImage: '',
   });
 
-  // Charger les données du tenant
+  // Récupérer les détails du salon depuis l'API
+  const { data: tenant, isLoading: isLoadingData, error } = useQuery<Salon>({
+    queryKey: ['salon', id],
+    queryFn: async () => {
+      const response = await apiClient.get(`/salons/${id}/`);
+      return response.data;
+    },
+    enabled: !!id,
+  });
+
+  // Remplir le formulaire avec les données du salon
   useEffect(() => {
-    if (id) {
-      setIsLoadingData(true);
-      // Simuler le chargement des données
-      setTimeout(() => {
-        const tenant = mockTenantData[id as keyof typeof mockTenantData];
-        if (tenant) {
-          setFormData({
-            name: tenant.name,
-            email: tenant.email,
-            phone: tenant.phone,
-            address: tenant.address,
-            openingHours: tenant.openingHours,
-            currency: tenant.currency,
-            timezone: tenant.timezone,
-            logo: tenant.logo || '',
-            heroImage: tenant.heroImage || '',
-          });
-        } else {
-          toast({
-            title: "Tenant introuvable",
-            description: "Le tenant demandé n'existe pas.",
-            variant: "destructive",
-          });
-          navigate('/admin/tenants');
-        }
-        setIsLoadingData(false);
-      }, 500);
+    if (tenant) {
+      setFormData({
+        name: tenant.name,
+        email: tenant.email,
+        phone: tenant.phone,
+        address: tenant.address,
+        opening_hours: tenant.opening_hours,
+        currency: tenant.currency,
+        timezone: tenant.timezone,
+        logo: tenant.logo || '',
+      });
     }
-  }, [id, navigate]);
+  }, [tenant]);
+
+  if (isLoadingData) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary"></div>
+          <p className="text-muted-foreground">Chargement du salon...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error || !tenant) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+          <Building2 className="w-16 h-16 text-muted-foreground" />
+          <h2 className="text-2xl font-bold">Salon introuvable</h2>
+          <p className="text-muted-foreground">Le salon demandé n'existe pas.</p>
+          <Button onClick={() => navigate('/tenants')}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Retour à la liste
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const handleChange = (field: keyof Salon, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -160,12 +133,13 @@ export default function EditTenantPage() {
       return;
     }
 
-    // Validation téléphone (format gabonais)
-    const phoneRegex = /^\+241\s?0[6-7]\s?\d{2}\s?\d{2}\s?\d{2}\s?\d{2}$/;
-    if (!phoneRegex.test(formData.phone.replace(/\s/g, ''))) {
+    // Validation téléphone (format gabonais: ancien +241 0[67] XXXXXX ou nouveau +241 [67][2-7] XXXXXX)
+    const cleanedPhone = formData.phone.replace(/[\s\-]/g, '');
+    const phoneRegex = /^\+241\d{8,10}$/;
+    if (!phoneRegex.test(cleanedPhone)) {
       toast({
         title: "Téléphone invalide",
-        description: "Format attendu: +241 06 12 34 56 78",
+        description: "Format attendu: +241 07 40 13 02 ou +241 074 40 13 02",
         variant: "destructive",
       });
       setIsLoading(false);
@@ -173,23 +147,41 @@ export default function EditTenantPage() {
     }
 
     try {
-      // Simuler l'appel API
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Appel API réel pour mettre à jour le tenant
+      const dataToSend = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+        opening_hours: formData.opening_hours,
+        currency: formData.currency,
+        timezone: formData.timezone,
+        ...(formData.logo ? { logo: formData.logo } : {}), // Ne send que si non-vide
+      };
+      
+      console.log('Sending data to API:', dataToSend);
+      const response = await apiClient.patch(`/salons/${id}/`, dataToSend);
+      console.log('API Response:', response.data);
 
-      // Ici, on ferait l'appel API réel pour mettre à jour le tenant
-      // const response = await api.put(`/admin/tenants/${id}`, formData);
+      // Invalider le cache pour forcer un refresh des données
+      queryClient.invalidateQueries({ queryKey: ['salon', id] });
+      queryClient.invalidateQueries({ queryKey: ['salons'] });
 
       toast({
-        title: "Tenant modifié avec succès",
+        title: "Salon modifié avec succès",
         description: `Le salon "${formData.name}" a été modifié avec succès.`,
       });
 
       // Rediriger vers la page de détails
-      navigate(`/admin/tenants/${id}`);
+      navigate(`/tenants/${id}`);
     } catch (error) {
+      console.error('Error updating salon:', error);
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+      }
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue lors de la modification du tenant.",
+        description: "Une erreur est survenue lors de la modification du salon.",
         variant: "destructive",
       });
     } finally {
@@ -330,14 +322,14 @@ export default function EditTenantPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="openingHours" className="text-sm font-medium">
+                <Label htmlFor="opening_hours" className="text-sm font-medium">
                   Heures d'ouverture
                 </Label>
                 <Input
-                  id="openingHours"
+                  id="opening_hours"
                   placeholder="Ex: 8h00 - 18h00"
-                  value={formData.openingHours}
-                  onChange={(e) => handleChange('openingHours', e.target.value)}
+                  value={formData.opening_hours}
+                  onChange={(e) => handleChange('opening_hours', e.target.value)}
                   className="h-11"
                 />
               </div>

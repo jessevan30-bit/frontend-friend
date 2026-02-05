@@ -120,7 +120,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold mb-1">Horaires</h3>
-                    <p className="text-muted-foreground">{salon.openingHours}</p>
+                    <p className="text-muted-foreground">{salon.opening_hours}</p>
                   </div>
                 </div>
               </div>

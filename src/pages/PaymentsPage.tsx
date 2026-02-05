@@ -1,43 +1,36 @@
 import { useState } from 'react';
-import { CreditCard, Banknote, Smartphone, TrendingUp, Search, Filter, Receipt, Wallet } from 'lucide-react';
+import { CreditCard, Banknote, Smartphone, TrendingUp, Search, Filter, Receipt, Wallet, AlertCircle } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { mockPayments, mockDashboardStats } from '@/data/mockData';
-import { useAppointments } from '@/contexts/AppointmentsContext';
-import { PaymentMethod, PaymentStatus } from '@/types';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 
+type PaymentMethod = 'CASH' | 'CARD' | 'MOBILE' | 'ONLINE' | 'AIRTEL_MONEY' | 'CASH_ON_ARRIVAL';
+type PaymentStatus = 'PENDING' | 'COMPLETED' | 'REFUNDED';
+
 const methodConfig: Record<PaymentMethod, { label: string; icon: React.ReactNode }> = {
-  cash: { label: 'Espèces', icon: <Banknote className="w-4 h-4" /> },
-  card: { label: 'Carte', icon: <CreditCard className="w-4 h-4" /> },
-  mobile: { label: 'Mobile', icon: <Smartphone className="w-4 h-4" /> },
-  online: { label: 'En ligne', icon: <Wallet className="w-4 h-4" /> },
-  airtel_money: { label: 'Airtel Money', icon: <Smartphone className="w-4 h-4" /> },
-  cash_on_arrival: { label: 'À l\'arrivée', icon: <CreditCard className="w-4 h-4" /> },
+  CASH: { label: 'Espèces', icon: <Banknote className="w-4 h-4" /> },
+  CARD: { label: 'Carte', icon: <CreditCard className="w-4 h-4" /> },
+  MOBILE: { label: 'Mobile', icon: <Smartphone className="w-4 h-4" /> },
+  ONLINE: { label: 'En ligne', icon: <Wallet className="w-4 h-4" /> },
+  AIRTEL_MONEY: { label: 'Airtel Money', icon: <Smartphone className="w-4 h-4" /> },
+  CASH_ON_ARRIVAL: { label: 'À l\'arrivée', icon: <CreditCard className="w-4 h-4" /> },
 };
 
 const statusConfig: Record<PaymentStatus, { label: string; className: string }> = {
-  pending: { label: 'En attente', className: 'bg-secondary text-secondary-foreground' },
-  completed: { label: 'Complété', className: 'bg-primary/10 text-primary' },
-  refunded: { label: 'Remboursé', className: 'bg-destructive/10 text-destructive' },
+  PENDING: { label: 'En attente', className: 'bg-secondary text-secondary-foreground' },
+  COMPLETED: { label: 'Complété', className: 'bg-primary/10 text-primary' },
+  REFUNDED: { label: 'Remboursé', className: 'bg-destructive/10 text-destructive' },
 };
 
 export default function PaymentsPage() {
-  const { getClientById } = useAppointments();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMethod, setSelectedMethod] = useState<string>('all');
 
-  const filteredPayments = mockPayments.filter(payment => {
-    const client = getClientById(payment.clientId);
-    const matchesSearch = client 
-      ? `${client.firstName} ${client.lastName}`.toLowerCase().includes(searchQuery.toLowerCase())
-      : false;
-    const matchesMethod = selectedMethod === 'all' || payment.method === selectedMethod;
-    return (searchQuery === '' || matchesSearch) && matchesMethod;
-  });
-
-  const totalRevenue = filteredPayments.reduce((sum, p) => sum + p.amount, 0);
+  // TODO: Utiliser les vrais hooks React Query pour les paiements
+  const payments: any[] = [];
+  const totalRevenue = 0;
 
   return (
     <DashboardLayout>
@@ -56,10 +49,10 @@ export default function PaymentsPage() {
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: "Aujourd'hui", value: mockDashboardStats.todayRevenue, icon: Banknote, delay: 0 },
-            { label: "Cette semaine", value: mockDashboardStats.weeklyRevenue, icon: TrendingUp, delay: 50 },
-            { label: "Ce mois", value: mockDashboardStats.monthlyRevenue.toLocaleString(), icon: Banknote, delay: 100 },
-          ].map((stat, index) => (
+            { label: "Aujourd'hui", value: 0, icon: Banknote, delay: 0 },
+            { label: "Cette semaine", value: 0, icon: TrendingUp, delay: 50 },
+            { label: "Ce mois", value: 0, icon: Banknote, delay: 100 },
+          ].map((stat) => (
             <div 
               key={stat.label}
               className="bg-card border border-border rounded-xl p-5 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group animate-fade-in-up"
@@ -94,6 +87,15 @@ export default function PaymentsPage() {
         </div>
 
         {/* Filters */}
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Module Paiements</AlertTitle>
+          <AlertDescription>
+            Les paiements seront enregistrés automatiquement lors des rendez-vous. 
+            Actuellement, aucun paiement n'est enregistré dans la base de données.
+          </AlertDescription>
+        </Alert>
+
         <div className="flex flex-col sm:flex-row gap-4 animate-fade-in">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -143,59 +145,47 @@ export default function PaymentsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredPayments.map((payment, index) => {
-                  const client = getClientById(payment.clientId);
-                  const method = methodConfig[payment.method];
-                  const status = statusConfig[payment.status];
-                  
-                  return (
+                {payments.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="p-12 text-center text-muted-foreground">
+                      <Receipt className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p className="text-lg font-medium mb-2">Aucun paiement</p>
+                      <p className="text-sm">Les paiements apparaîtront ici une fois enregistrés</p>
+                    </td>
+                  </tr>
+                ) : (
+                  payments.map((payment, index) => (
                     <tr 
                       key={payment.id}
                       className="border-t border-border hover:bg-accent/50 transition-all duration-200 group animate-fade-in"
                       style={{ animationDelay: `${index * 30}ms` }}
                     >
                       <td className="p-4 font-mono text-sm">
-                        {new Date(payment.createdAt).toLocaleDateString('fr-FR')}
+                        {new Date(payment.created_at).toLocaleDateString('fr-FR')}
                       </td>
                       <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 gradient-sunset flex items-center justify-center text-xs font-bold rounded-full group-hover:shadow-glow transition-shadow">
-                            {client ? `${client.firstName[0]}${client.lastName[0]}` : '??'}
-                          </div>
-                          <span className="font-medium group-hover:text-primary transition-colors">
-                            {client ? `${client.firstName} ${client.lastName}` : 'Client inconnu'}
-                          </span>
+                        <span className="font-medium">Client</span>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-2">
+                          <Banknote className="w-4 h-4" />
+                          <span>Paiement</span>
                         </div>
                       </td>
                       <td className="p-4">
-                        <div className="flex items-center gap-2 group-hover:translate-x-1 transition-transform">
-                          {method.icon}
-                          <span>{method.label}</span>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <span className={cn("px-3 py-1 text-xs font-medium rounded-full", status.className)}>
-                          {status.label}
+                        <span className="px-3 py-1 text-xs font-medium rounded-full bg-primary/10 text-primary">
+                          Complété
                         </span>
                       </td>
                       <td className="p-4 text-right font-bold font-mono text-lg text-primary">
                         {payment.amount} FCFA
                       </td>
                     </tr>
-                  );
-                })}
+                  ))
+                )}
               </tbody>
             </table>
           </div>
-          
-          {filteredPayments.length === 0 && (
-            <div className="p-12 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-secondary rounded-full flex items-center justify-center">
-                <Receipt className="w-8 h-8 text-muted-foreground" />
-              </div>
-              <p className="text-muted-foreground">Aucun paiement trouvé</p>
-            </div>
-          )}
         </div>
       </div>
     </DashboardLayout>

@@ -42,7 +42,16 @@ import PublicServiceDetailPage from "./pages/public/ServiceDetailPage";
 import BookingPage from "./pages/public/BookingPage";
 import ContactPage from "./pages/public/ContactPage";
 
-const queryClient = new QueryClient();
+// Configure React Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60000, // 1 minute
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -103,6 +112,45 @@ const App = () => (
               </TenantProvider>
             </ProtectedRoute>
           } />
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <TenantProvider isPublic={false}>
+                <Dashboard />
+              </TenantProvider>
+            </ProtectedRoute>
+          } />
+          
+          {/* Routes Tenants (nouvelle structure) */}
+          <Route path="/tenants" element={
+            <ProtectedRoute>
+              <TenantProvider isPublic={false}>
+                <TenantsPage />
+              </TenantProvider>
+            </ProtectedRoute>
+          } />
+          <Route path="/tenants/new" element={
+            <ProtectedRoute>
+              <TenantProvider isPublic={false}>
+                <NewTenantPage />
+              </TenantProvider>
+            </ProtectedRoute>
+          } />
+          <Route path="/tenants/:id" element={
+            <ProtectedRoute>
+              <TenantProvider isPublic={false}>
+                <TenantDetailPage />
+              </TenantProvider>
+            </ProtectedRoute>
+          } />
+          <Route path="/tenants/:id/edit" element={
+            <ProtectedRoute>
+              <TenantProvider isPublic={false}>
+                <EditTenantPage />
+              </TenantProvider>
+            </ProtectedRoute>
+          } />
+          
+          {/* Routes Admin Tenants (ancienne structure, conservée pour compatibilité) */}
           <Route path="/admin/tenants" element={
             <ProtectedRoute>
               <TenantProvider isPublic={false}>
@@ -183,7 +231,9 @@ const App = () => (
           <Route path="/admin/appointments" element={
             <ProtectedRoute>
               <TenantProvider isPublic={false}>
-                <AppointmentsPage />
+                <TenantThemeProvider>
+                  <AppointmentsPage />
+                </TenantThemeProvider>
               </TenantProvider>
             </ProtectedRoute>
           } />
@@ -285,7 +335,9 @@ const App = () => (
           <Route path="/appointments" element={
             <ProtectedRoute>
               <TenantProvider isPublic={false}>
-                <AppointmentsPage />
+                <TenantThemeProvider>
+                  <AppointmentsPage />
+                </TenantThemeProvider>
               </TenantProvider>
             </ProtectedRoute>
           } />

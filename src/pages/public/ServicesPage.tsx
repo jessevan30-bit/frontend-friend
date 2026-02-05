@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Scissors, ArrowRight, Filter, Users, User, UserCircle, Baby, Sparkles, Clock, Star, Heart, Grid3x3, Layers, Eye, Banknote } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { mockServices, mockCategories, getCategoryById } from '@/data/mockData';
+import { useServices, useServiceCategories } from '@/hooks/useApi';
 import { AfricanStarSymbol } from '@/components/african-symbols/AfricanSymbols';
+import { formatPrice } from '@/lib/utils';
 
 import { AnimatedSection, StaggerGrid, StaggerItem, HeroSection } from '@/components/public';
 import { ServiceCard } from '@/components/services';
@@ -17,10 +18,29 @@ export default function ServicesPage() {
   const { salon } = useTenant();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedTarget, setSelectedTarget] = useState<string>('all');
-  const [hoveredServiceId, setHoveredServiceId] = useState<string | null>(null);
+  const [hoveredServiceId, setHoveredServiceId] = useState<string | number | null>(null);
   const [isFilterAnimating, setIsFilterAnimating] = useState(false);
   const [viewMode, setViewMode] = useState<'mosaic' | 'carousel'>('mosaic');
   const { scrollY } = useScroll();
+  
+  // Récupération des données via API
+  const { data: servicesData, isLoading: servicesLoading } = useServices();
+  const { data: categoriesData, isLoading: categoriesLoading } = useServiceCategories();
+  
+  const services = servicesData?.results || [];
+  const categories = categoriesData || [];
+  
+  // Debug: Log data structure
+  console.log('Services data:', services[0]);
+  console.log('Categories data:', categories[0]);
+  
+  // Gestion du chargement
+  const isLoading = servicesLoading || categoriesLoading;
+  
+  // Fonction pour trouver une catégorie par ID
+  const getCategoryById = (id: string | number) => {
+    return categories.find(cat => cat.id === id || cat.id === String(id));
+  };
   
   // Parallax effects
   const heroY = useTransform(scrollY, [0, 500], [0, 150]);
@@ -28,12 +48,13 @@ export default function ServicesPage() {
   const scaleHero = useTransform(scrollY, [0, 300], [1, 0.8]);
   
   // Image unique pour la page services - Tresses et coiffures traditionnelles
-  const heroImage = salon.heroImage || getPageHeroImage('services', 1920, 1080);
+  const heroImage = salon?.heroImage || getPageHeroImage('services', 1920, 1080);
 
-  const filteredServices = mockServices.filter(s => {
-    if (!s.isActive || !s.isPublished) return false;
-    const matchesCategory = selectedCategory === 'all' || s.categoryId === selectedCategory;
-    const matchesTarget = selectedTarget === 'all' || s.target === selectedTarget;
+  const filteredServices = services.filter(s => {
+    if (!(s.is_active ?? s.isActive) || !(s.is_published ?? s.isPublished)) return false;
+    const matchesCategory = selectedCategory === 'all' || 
+      (s.category && (String(s.category.id || s.category) === selectedCategory));
+    const matchesTarget = selectedTarget === 'all' || !s.target || s.target === selectedTarget;
     return matchesCategory && matchesTarget;
   });
 
@@ -47,9 +68,23 @@ export default function ServicesPage() {
   // Animation stats dynamiques
   const serviceCount = filteredServices.length;
   const averagePrice = Math.round(
-    filteredServices.reduce((acc, s) => acc + s.price, 0) / serviceCount || 0
+    filteredServices.reduce((acc, s) => acc + (Number(s.price) || 0), 0) / serviceCount || 0
   );
   const totalDuration = filteredServices.reduce((acc, s) => acc + s.duration, 0);
+
+  // Affichage de chargement
+  if (isLoading) {
+    return (
+      <PublicLayout>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="text-muted-foreground">Chargement des services...</p>
+          </div>
+        </div>
+      </PublicLayout>
+    );
+  }
 
   return (
     <PublicLayout>
@@ -137,7 +172,7 @@ export default function ServicesPage() {
                   animate={{ scale: [1.2, 1, 1.2], rotate: [0, -10, 10, 0] }}
                   transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
                 >
-                  <AfricanStarSymbol size={50} animated={true} color="pink" />
+                  <AfricanStarSymbol size={50} animated={true} color="gradient" />
                 </motion.div>
               </div>
             </motion.div>
@@ -185,7 +220,7 @@ export default function ServicesPage() {
                   animate={{ scale: 1 }}
                   transition={{ duration: 0.5, delay: 1, type: "spring" }}
                 >
-                  {mockCategories.length}
+                  {categories.length}
                 </motion.div>
                 <div className="text-sm text-white/80">Catégories</div>
               </motion.div>
@@ -201,7 +236,7 @@ export default function ServicesPage() {
                   animate={{ scale: 1 }}
                   transition={{ duration: 0.5, delay: 1.2, type: "spring" }}
                 >
-                  {averagePrice}€
+                  {formatPrice(averagePrice, salon?.currency)}
                 </motion.div>
                 <div className="text-sm text-white/80">Prix moyen</div>
               </motion.div>
@@ -299,7 +334,7 @@ export default function ServicesPage() {
                     transition={{ delay: 0.5, type: "spring" }}
                   >
                     <span className="text-xs text-muted-foreground bg-primary/10 px-2 py-1 rounded-full">
-                      {mockCategories.length} disponibles
+                      {categories.length} disponibles
                     </span>
                   </motion.div>
                 </div>
@@ -328,7 +363,7 @@ export default function ServicesPage() {
                       Toutes
                     </Button>
                   </motion.div>
-                  {mockCategories.map((category, index) => (
+                  {categories.map((category, index) => (
                     <motion.div
                       key={category.id}
                       layout
@@ -541,7 +576,7 @@ export default function ServicesPage() {
                   >
                     <AnimatePresence>
                       {filteredServices.map((service, index) => {
-                        const category = getCategoryById(service.categoryId);
+                        const category = service.category || getCategoryById(service.categoryId);
                         
                         return (
                           <motion.div
@@ -603,7 +638,7 @@ export default function ServicesPage() {
                                 </motion.div>
                                 
                                 {/* Badge type client */}
-                                {service.target && service.target !== 'unisex' && (
+                                {service.target && (
                                   <motion.div
                                     className="absolute top-3 right-3"
                                     initial={{ opacity: 0, x: 10 }}
@@ -644,7 +679,7 @@ export default function ServicesPage() {
                                   </div>
                                   <div className="flex items-center gap-1 font-semibold text-primary">
                                     <Banknote className="w-3 h-3" />
-                                    <span>{service.price}€</span>
+                                    <span>{formatPrice(Number(service.price) || 0, salon?.currency)}</span>
                                   </div>
                                 </div>
                               </div>
@@ -727,7 +762,7 @@ export default function ServicesPage() {
                     >
                       <AnimatePresence>
                         {filteredServices.map((service, index) => {
-                          const category = getCategoryById(service.categoryId);
+                          const category = service.category || getCategoryById(service.categoryId);
                           return (
                             <motion.div
                               key={service.id}
@@ -773,7 +808,7 @@ export default function ServicesPage() {
                                       {category?.name || 'Service'}
                                     </span>
                                     
-                                    {service.target && service.target !== 'unisex' && (
+                                    {service.target && (
                                       <span 
                                         className={cn(
                                           "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white",
@@ -811,7 +846,7 @@ export default function ServicesPage() {
                                       </div>
                                       <div className="flex items-center gap-1 font-semibold text-primary">
                                         <Banknote className="w-3 h-3" />
-                                        <span>{service.price}€</span>
+                                        <span>{formatPrice(Number(service.price) || 0, salon?.currency)}</span>
                                       </div>
                                     </div>
                                   </div>

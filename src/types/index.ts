@@ -11,15 +11,19 @@ export interface TenantTheme {
 }
 
 export interface Salon {
-  id: string;
+  id: string | number;
   name: string;
   address: string;
   phone: string;
   email: string;
-  openingHours: string;
+  opening_hours: string;
   currency: string;
   timezone: string;
   logo?: string;
+  primary_color: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
   heroImage?: string; // Image hero personnalisée (optionnel, utilise Unsplash par défaut)
   theme?: TenantTheme; // Thème personnalisé du tenant
 }
@@ -29,8 +33,8 @@ export type EmployeeRole = 'admin' | 'coiffeur' | 'receptionniste';
 export interface Employee {
   id: string;
   salonId: string;
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   email: string;
   phone: string;
   role: EmployeeRole;
@@ -42,8 +46,8 @@ export interface Employee {
 export interface Client {
   id: string;
   salonId: string;
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   email: string;
   phone: string;
   preferences?: string;
@@ -58,20 +62,28 @@ export interface ServiceCategory {
   color: string;
 }
 
-export type ServiceTarget = 'homme' | 'femme' | 'enfant' | 'unisex';
+export type ServiceTarget = 'homme' | 'femme' | 'enfant_fille' | 'enfant_garcon';
 
 export interface Service {
-  id: string;
-  salonId: string;
+  id: string | number;
   name: string;
   description?: string;
   duration: number; // en minutes
+  duration_display?: string;
   price: number;
-  categoryId: string;
-  target: ServiceTarget; // Cible du service (homme, femme, enfant, unisex)
-  isActive: boolean;
-  isPublished?: boolean; // Ajout de la propriété pour la publication
+  category?: ServiceCategory | { id: string | number; name: string };
+  category_name?: string;
+  categoryId?: string;
+  target?: ServiceTarget; // Cible du service
+  target_display?: string; // Libellé de la cible
+  is_active?: boolean;
+  isActive?: boolean;
+  is_published?: boolean; // Statut de publication
+  isPublished?: boolean; // Ancien format
   image?: string; // URL de l'image du service
+  salonId?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export type AppointmentStatus = 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show' | 'rescheduled';

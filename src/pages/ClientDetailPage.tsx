@@ -2,17 +2,50 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, User, Phone, Mail, MapPin, Calendar, Clock, Banknote, History, Pencil } from 'lucide-react';
-import { useAppointments } from '@/contexts/AppointmentsContext';
+import { useQuery } from '@tanstack/react-query';
+import { useTenant } from '@/contexts/TenantContext';
 import { cn } from '@/lib/utils';
+import { formatPrice } from '@/lib/utils';
 import { AfricanStarSymbol } from '@/components/african-symbols/AfricanSymbols';
 import { format } from 'date-fns';
+import { apiClient } from '@/lib/api-client';
+import type { Client, Appointment } from '@/types';
 
 export default function ClientDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getClientById, appointments } = useAppointments();
-  const client = id ? getClientById(id) : null;
-  const clientAppointments = client ? appointments.filter(apt => apt.clientId === client.id) : [];
+  const { salon } = useTenant();
+
+  // Fetch client data
+  const { data: client, isLoading: isLoadingClient } = useQuery<Client>({
+    queryKey: ['client', id],
+    queryFn: async () => {
+      const response = await apiClient.get(`/clients/${id}/`);
+      return response.data;
+    },
+    enabled: !!id,
+  });
+
+  // Fetch client appointments
+  const { data: clientAppointments = [] } = useQuery<Appointment[]>({
+    queryKey: ['clientAppointments', id],
+    queryFn: async () => {
+      const response = await apiClient.get(`/appointments/?client=${id}`);
+      return Array.isArray(response.data) ? response.data : (response.data.results || []);
+    },
+    enabled: !!id,
+  });
+
+  if (isLoadingClient) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center py-12 space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <p className="text-muted-foreground">Chargement...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   if (!client) {
     return (
@@ -67,7 +100,7 @@ export default function ClientDetailPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-sm text-muted-foreground">Nom complet</label>
-                  <p className="text-lg font-semibold">{client.firstName} {client.lastName}</p>
+                  <p className="text-lg font-semibold">{client.first_name} {client.last_name}</p>
                 </div>
 
                 <div className="space-y-2">
@@ -168,7 +201,7 @@ export default function ClientDetailPage() {
                 </div>
 
                 <div className="text-center p-4 bg-secondary/50 rounded-lg">
-                  <p className="text-3xl font-bold text-primary">0 FCFA</p>
+                  <p className="text-3xl font-bold text-primary">{formatPrice(0, salon?.currency)}</p>
                   <p className="text-sm text-muted-foreground">Total dépensé</p>
                 </div>
               </div>

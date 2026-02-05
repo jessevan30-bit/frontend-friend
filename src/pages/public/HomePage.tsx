@@ -3,7 +3,7 @@ import { useTenant } from '@/contexts/TenantContext';
 import { Button } from '@/components/ui/button';
 import { Calendar, Scissors, Sparkles, ArrowRight, Clock, Banknote, Users, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { mockServices, mockCategories, getCategoryById } from '@/data/mockData';
+import { useServices } from '@/hooks/useApi';
 
 import heroImage from '@/assets/hero-salon.jpg';
 import { HeroSection } from '@/components/public/HeroSection';
@@ -13,14 +13,16 @@ import { StaggerGrid, StaggerItem } from '@/components/public/StaggerGrid';
 import { ParallaxSection } from '@/components/public/ParallaxSection';
 import { getServiceImage } from '@/lib/unsplash';
 import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { cn, formatPrice } from '@/lib/utils';
 import { AkomaSymbol, AfricanStarSymbol, SankofaSymbol } from '@/components/african-symbols/AfricanSymbols';
 
 export default function HomePage() {
   const { salon } = useTenant();
-  const featuredServices = mockServices.slice(0, 6);
+  const { data: servicesData } = useServices();
+  const services = servicesData?.results || [];
+  const featuredServices = services.slice(0, 6);
   // Image du dashboard (ou image personnalisée du salon)
-  const heroImageUrl = salon.heroImage || heroImage;
+  const heroImageUrl = salon?.heroImage || heroImage;
 
   return (
     <PublicLayout>
@@ -30,7 +32,7 @@ export default function HomePage() {
         subtitle={
           <div className="flex items-center gap-2">
             <AkomaSymbol size={24} animated={true} color="yellow" />
-            <span>Bienvenue chez {salon.name}</span>
+            <span>Bienvenue chez {salon?.name || 'notre salon'}</span>
           </div>
         }
         title={
@@ -198,8 +200,7 @@ export default function HomePage() {
                   style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 >
                   {featuredServices.map((service, index) => {
-                    const category = getCategoryById(service.categoryId);
-                    const serviceImage = service.image || getServiceImage(service.id, 400, 300);
+                    const serviceImage = service.image || getServiceImage(service.id.toString(), 400, 300);
                     
                     return (
                       <motion.div
@@ -236,27 +237,11 @@ export default function HomePage() {
                             
                             {/* Badges */}
                             <div className="absolute top-3 left-3 right-3 flex justify-between">
-                              <span
-                                className="px-2 py-1 text-xs font-semibold rounded-full text-white shadow-md"
-                                style={{
-                                  backgroundColor: category?.color || 'hsl(var(--primary))',
-                                }}
-                              >
-                                {category?.name || 'Service'}
-                              </span>
-                              
-                              {service.target && service.target !== 'unisex' && (
-                                <span 
-                                  className={cn(
-                                    "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white",
-                                    service.target === 'homme' && "bg-blue-600",
-                                    service.target === 'femme' && "bg-pink-600",
-                                    service.target === 'enfant' && "bg-yellow-600"
-                                  )}
+                              {service.category_name && (
+                                <span
+                                  className="px-2 py-1 text-xs font-semibold rounded-full text-white shadow-md bg-primary"
                                 >
-                                  {service.target === 'homme' && 'H'}
-                                  {service.target === 'femme' && 'F'}
-                                  {service.target === 'enfant' && 'E'}
+                                  {service.category_name}
                                 </span>
                               )}
                             </div>
@@ -277,7 +262,7 @@ export default function HomePage() {
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <Banknote className="w-4 h-4 text-primary" />
-                                <span className="font-bold text-primary">{service.price}€</span>
+                                <span className="font-bold text-primary">{formatPrice(Number(service.price) || 0, salon?.currency)}</span>
                               </div>
                               
                               <Link to="/public/booking">
@@ -318,21 +303,19 @@ export default function HomePage() {
               </p>
             </div>
             
-            <div className="flex flex-wrap justify-center gap-4">
-              {mockCategories.map((category, index) => (
-                <motion.button
-                  key={category.id}
-                  className="px-6 py-3 bg-card/60 backdrop-blur-sm border border-border rounded-full text-muted-foreground hover:border-primary hover:text-primary transition-all hover:shadow-md"
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  {category.name}
-                </motion.button>
-              ))}
-            </div>
+            {featuredServices.length > 0 && (
+              <div className="flex flex-wrap justify-center gap-4">
+                <Link to="/public/services">
+                  <motion.button
+                    className="px-6 py-3 bg-card/60 backdrop-blur-sm border border-border rounded-full text-muted-foreground hover:border-primary hover:text-primary transition-all hover:shadow-md"
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Voir tous nos services
+                  </motion.button>
+                </Link>
+              </div>
+            )}
           </div>
 
 

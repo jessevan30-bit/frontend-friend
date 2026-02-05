@@ -20,7 +20,6 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { mockSalon } from '@/data/mockData';
 import { GabonMaskSymbol, AfricanStarSymbol } from '@/components/african-symbols/AfricanSymbols';
 import { BrandingFooter } from '@/components/branding/BrandingFooter';
 import { useAuth } from '@/contexts/AuthContext';
@@ -111,8 +110,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   </div>
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold tracking-tight text-sidebar-foreground">{mockSalon.name}</h1>
-                  <p className="text-sm text-sidebar-foreground/70 mt-1">{mockSalon.address.split(',')[0]}</p>
+                  <h1 className="text-2xl font-bold tracking-tight text-sidebar-foreground">{salon?.name || 'SaaS Coiffure'}</h1>
+                  <p className="text-sm text-sidebar-foreground/70 mt-1">{salon?.address?.split(',')[0] || 'Libreville'}</p>
                 </div>
               </div>
               <Button 
@@ -180,7 +179,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="flex items-center gap-3 px-4 py-3 bg-sidebar-accent rounded-lg">
               <div className="w-10 h-10 gradient-gabon flex items-center justify-center font-bold rounded-full animate-pulse-glow relative">
                 <span className="z-10">
-                  {user ? `${user.firstName[0]}${user.lastName[0]}` : 'MD'}
+                  {user ? `${user.first_name[0]}${user.last_name[0]}` : 'MD'}
                 </span>
                 <div className="absolute -top-1 -right-1">
                   <AfricanStarSymbol size={10} animated={true} color="yellow" />
@@ -188,12 +187,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-sidebar-foreground truncate">
-                  {user ? `${user.firstName} ${user.lastName}` : 'Utilisateur'}
+                  {user ? `${user.first_name} ${user.last_name}` : 'Utilisateur'}
                 </p>
                 <p className="text-xs text-sidebar-foreground/60">
-                  {user?.role === 'admin' ? 'Administrateur' : 
-                   user?.role === 'coiffeur' ? 'Coiffeur' : 
-                   user?.role === 'receptionniste' ? 'Réceptionniste' : 'Utilisateur'}
+                  {user?.role === 'ADMIN' ? 'Administrateur' : 
+                   user?.role === 'COIFFEUR' ? 'Coiffeur' : 
+                   user?.role === 'RECEPTIONNISTE' ? 'Réceptionniste' : 'Utilisateur'}
                 </p>
               </div>
             </div>

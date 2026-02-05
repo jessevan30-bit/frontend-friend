@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom';
 import { Plus, ChevronLeft, ChevronRight, Clock, User, MessageCircle, Globe, PhoneCall, UserRound, Calendar, Sparkles, Waves } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { mockEmployees, getServiceById } from '@/data/mockData';
-import { useAppointments } from '@/contexts/AppointmentsContext';
+import { useAppointments as useAppointmentsQuery, useEmployees, useClients, useServices } from '@/hooks/useApi';
 import { GyeNyameSymbol, SankofaSymbol, AfricanStarSymbol, AdinkraSymbol } from '@/components/african-symbols/AfricanSymbols';
 import { 
   Dialog, 
@@ -23,8 +22,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { AppointmentStatus } from '@/types';
 import { useTenantTheme } from '@/contexts/TenantThemeContext';
+
+// Types pour les statuts d'appointments de l'API
+type AppointmentStatus = 'PENDING' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW';
 
 const timeSlots = [
   '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
@@ -33,36 +34,36 @@ const timeSlots = [
 ];
 
 const statusColors: Record<AppointmentStatus, { bg: string; border: string; text: string; glow?: string }> = {
-  pending: { 
+  PENDING: { 
     bg: 'bg-gradient-to-br from-secondary to-background', 
     border: 'border-border', 
     text: 'text-foreground',
     glow: 'shadow-primary/20'
   },
-  confirmed: { 
+  CONFIRMED: { 
     bg: 'bg-gradient-to-br from-primary/90 to-primary/70', 
     border: 'border-primary/50', 
     text: 'text-primary-foreground',
     glow: 'shadow-primary/30'
   },
-  in_progress: { 
+  IN_PROGRESS: { 
     bg: 'bg-gradient-to-br from-accent to-accent/70', 
     border: 'border-accent/50', 
     text: 'text-accent-foreground',
     glow: 'shadow-accent/30'
   },
-  completed: { 
+  COMPLETED: { 
     bg: 'bg-gradient-to-br from-muted to-muted/70', 
     border: 'border-border', 
     text: 'text-muted-foreground'
   },
-  cancelled: { 
+  CANCELLED: { 
     bg: 'bg-gradient-to-br from-destructive/20 to-destructive/10', 
     border: 'border-destructive/30', 
     text: 'text-destructive',
     glow: 'shadow-destructive/20'
   },
-  no_show: { 
+  NO_SHOW: { 
     bg: 'bg-gradient-to-br from-destructive/10 to-destructive/5', 
     border: 'border-destructive/20', 
     text: 'text-destructive/80',
@@ -71,29 +72,40 @@ const statusColors: Record<AppointmentStatus, { bg: string; border: string; text
 };
 
 export default function AppointmentsPage() {
-  const { appointments, updateAppointmentStatus, getClientById } = useAppointments();
+  // Utiliser les hooks React Query
+  const { data: appointmentsData } = useAppointmentsQuery();
+  const { data: employeesData } = useEmployees();
+  const { data: clientsData } = useClients();
+  const { data: servicesData } = useServices();
+  
+  // Extraire les tableaux des réponses paginées
+  const appointments = appointmentsData?.results || [];
+  const employees = employeesData?.results || [];
+  const clients = clientsData?.results || [];
+  const services = servicesData?.results || [];
+  
   const { theme } = useTenantTheme();
-  const [currentDate, setCurrentDate] = useState(new Date('2026-01-30'));
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState<string>('all');
+  const [selectedEmployee, setSelectedEmployee] = useState<string | number>('all');
   const [hoveredTimeSlot, setHoveredTimeSlot] = useState<string | null>(null);
+
+  const formattedDate = currentDate.toISOString().split('T')[0];
+  const todayAppointments = appointments.filter(apt => apt.date === formattedDate);
 
   const todayStats = useMemo(() => {
     const today = appointments.filter(apt => apt.date === formattedDate);
     return {
       total: today.length,
-      pending: today.filter(apt => apt.status === 'pending').length,
-      confirmed: today.filter(apt => apt.status === 'confirmed').length,
-      inProgress: today.filter(apt => apt.status === 'in_progress').length,
-      completed: today.filter(apt => apt.status === 'completed').length,
-      cancelled: today.filter(apt => apt.status === 'cancelled').length,
+      pending: today.filter(apt => apt.status === 'PENDING').length,
+      confirmed: today.filter(apt => apt.status === 'CONFIRMED').length,
+      inProgress: today.filter(apt => apt.status === 'IN_PROGRESS').length,
+      completed: today.filter(apt => apt.status === 'COMPLETED').length,
+      cancelled: today.filter(apt => apt.status === 'CANCELLED').length,
     };
   }, [appointments, formattedDate]);
-
-  const formattedDate = currentDate.toISOString().split('T')[0];
-  const todayAppointments = appointments.filter(apt => apt.date === formattedDate);
   
-  const coiffeurs = mockEmployees.filter(e => e.role === 'coiffeur');
+  const coiffeurs = employees.filter(e => e.role === 'COIFFEUR');
   const displayedEmployees = selectedEmployee === 'all' 
     ? coiffeurs 
     : coiffeurs.filter(e => e.id === selectedEmployee);
@@ -104,10 +116,10 @@ export default function AppointmentsPage() {
     setCurrentDate(newDate);
   };
 
-  const getAppointmentForSlot = (employeeId: string, time: string) => {
+  const getAppointmentForSlot = (employeeId: number, time: string) => {
     return todayAppointments.find(apt => 
-      apt.employeeId === employeeId && 
-      apt.startTime === time
+      apt.employee === employeeId && 
+      apt.start_time === time
     );
   };
 
@@ -135,7 +147,7 @@ export default function AppointmentsPage() {
               </h1>
             </div>
             <p className="text-muted-foreground flex items-center gap-2 font-medium">
-              <SankofaSymbol size={18} animated={true} color="primary" />
+              <SankofaSymbol size={18} animated={true} color="yellow" />
               Planification et gestion des RDV
             </p>
           </div>
@@ -168,7 +180,7 @@ export default function AppointmentsPage() {
               <Button className="gap-2 relative shadow-md hover:shadow-glow-primary transition-all duration-300 hover:scale-105 group">
                 <Plus className="w-4 h-4" />
                 Nouveau RDV
-                <AdinkraSymbol size={16} animated={true} color="white" />
+                <AdinkraSymbol size={16} animated={true} color="yellow" />
               </Button>
             </DialogTrigger>
             <DialogContent className="border border-border bg-card/95 backdrop-blur-2xl rounded-2xl shadow-2xl animate-scale-in max-w-md">
@@ -213,8 +225,8 @@ export default function AppointmentsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       {coiffeurs.map(emp => (
-                        <SelectItem key={emp.id} value={emp.id}>
-                          {emp.firstName} {emp.lastName}
+                        <SelectItem key={emp.id} value={emp.id.toString()}>
+                          {emp.first_name} {emp.last_name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -315,7 +327,7 @@ export default function AppointmentsPage() {
             className="transition-all duration-300 hover:scale-105 border-border hover:border-primary group"
           >
             <span className="flex items-center gap-2">
-              <AfricanStarSymbol size={14} animated={selectedEmployee === 'all'} color="primary" />
+              <AfricanStarSymbol size={14} animated={selectedEmployee === 'all'} color="yellow" />
               Tous les coiffeurs
             </span>
           </Button>
@@ -334,13 +346,13 @@ export default function AppointmentsPage() {
               <span className="flex items-center gap-2 relative z-10">
                 <div 
                   className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground shadow-sm"
-                  style={{ backgroundColor: emp.color }}
+                  style={{ backgroundColor: 'hsl(var(--primary))' }}
                 >
-                  {emp.firstName[0]}
+                  {emp.first_name[0]}
                 </div>
-                {emp.firstName}
+                {emp.first_name}
                 {selectedEmployee === emp.id && (
-                  <AfricanStarSymbol size={10} animated={true} color="white" />
+                  <AfricanStarSymbol size={10} animated={true} color="yellow" />
                 )}
               </span>
               {selectedEmployee === emp.id && (
@@ -368,15 +380,15 @@ export default function AppointmentsPage() {
                   <div className="relative">
                     <div 
                       className="w-14 h-14 mx-auto mb-2 flex items-center justify-center font-bold rounded-full shadow-lg relative ring-2 ring-primary/20"
-                      style={{ backgroundColor: emp.color, color: 'white' }}
+                      style={{ backgroundColor: 'hsl(var(--primary))', color: 'white' }}
                     >
-                      <span className="z-10 text-lg">{emp.firstName[0]}{emp.lastName[0]}</span>
+                      <span className="z-10 text-lg">{emp.first_name[0]}{emp.last_name[0]}</span>
                       <div className="absolute -top-1 -right-1">
-                        <AfricanStarSymbol size={12} animated={true} color="primary" />
+                        <AfricanStarSymbol size={12} animated={true} color="yellow" />
                       </div>
                     </div>
-                    <p className="font-bold text-foreground">{emp.firstName}</p>
-                    <p className="text-xs text-muted-foreground">{emp.lastName}</p>
+                    <p className="font-bold text-foreground">{emp.first_name}</p>
+                    <p className="text-xs text-muted-foreground">{emp.last_name}</p>
                   </div>
                 </div>
               ))}
@@ -406,8 +418,8 @@ export default function AppointmentsPage() {
                   </div>
                   {displayedEmployees.map(emp => {
                     const appointment = getAppointmentForSlot(emp.id, time);
-                    const client = appointment ? getClientById(appointment.clientId) : null;
-                    const service = appointment ? getServiceById(appointment.serviceId) : null;
+                    const client = appointment ? clients.find(c => c.id === appointment.client) : null;
+                    const service = appointment ? services.find(s => s.id === appointment.service) : null;
                     const statusConfig = appointment ? statusColors[appointment.status] : null;
                     
                     return (
@@ -428,7 +440,7 @@ export default function AppointmentsPage() {
                             <div className="text-xs space-y-1.5 h-full flex flex-col justify-center">
                               <div className="flex items-center gap-1.5 font-bold" style={{ color: statusConfig?.text }}>
                                 <User className="w-3 h-3" />
-                                {client.firstName} {client.lastName}
+                                {client.first_name} {client.last_name}
                               </div>
                               <div className="flex items-center gap-1.5 opacity-80" style={{ color: statusConfig?.text }}>
                                 <Clock className="w-3 h-3" />

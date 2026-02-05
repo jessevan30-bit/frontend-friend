@@ -2,8 +2,9 @@ import { Calendar, Banknote, Users, TrendingUp, Clock, UserPlus, Sparkles } from
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { AppointmentCard } from '@/components/dashboard/AppointmentCard';
-import { mockDashboardStats, mockEmployees } from '@/data/mockData';
-import { useAppointments } from '@/contexts/AppointmentsContext';
+import { useAppointments, useEmployees, useClients, useServices } from '@/hooks/useApi';
+import { useTenant } from '@/contexts/TenantContext';
+import { formatPrice } from '@/lib/utils';
 import heroImage from '@/assets/hero-salon.jpg';
 import { 
   SankofaSymbol, 
@@ -15,8 +16,29 @@ import {
 } from '@/components/african-symbols/AfricanSymbols';
 
 export default function Dashboard() {
-  const { appointments } = useAppointments();
-  const todayAppointments = appointments.filter(apt => apt.date === '2026-01-30');
+  const { salon } = useTenant();
+  
+  // Utilisation des vrais hooks React Query
+  const { data: appointmentsData, isLoading: appointmentsLoading } = useAppointments();
+  const { data: employeesData, isLoading: employeesLoading } = useEmployees();
+  const { data: clientsData, isLoading: clientsLoading } = useClients();
+  const { data: servicesData, isLoading: servicesLoading } = useServices();
+  
+  // Extraire les tableaux des réponses paginées
+  const appointments = appointmentsData?.results || [];
+  const employees = employeesData?.results || [];
+  const clients = clientsData?.results || [];
+  const services = servicesData?.results || [];
+  
+  // Filtrer les rendez-vous d'aujourd'hui
+  const today = new Date().toISOString().split('T')[0];
+  const todayAppointments = appointments.filter(apt => apt.date === today);
+  
+  // Calculer les statistiques
+  const todayRevenue = todayAppointments.reduce((sum, apt) => sum + (apt.price || 0), 0);
+  const activeEmployees = employees.filter(e => e.is_active);
+  
+  const isLoading = appointmentsLoading || employeesLoading || clientsLoading || servicesLoading;
 
   return (
     <DashboardLayout>
@@ -74,7 +96,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
           <StatCard
             title="RDV aujourd'hui"
-            value={mockDashboardStats.todayAppointments}
+            value={todayAppointments.length}
             icon={
               <div className="relative">
                 <Calendar className="w-5 h-5 text-primary" />
@@ -87,7 +109,7 @@ export default function Dashboard() {
           />
           <StatCard
             title="CA aujourd'hui"
-            value={`${mockDashboardStats.todayRevenue} FCFA`}
+            value={`${formatPrice(todayRevenue, salon?.currency)}`}
             icon={
               <div className="relative">
                 <Banknote className="w-5 h-5 text-primary" />
@@ -100,7 +122,7 @@ export default function Dashboard() {
           />
           <StatCard
             title="CA semaine"
-            value={`${mockDashboardStats.weeklyRevenue} FCFA`}
+            value={formatPrice(0, salon?.currency)}
             icon={
               <div className="relative">
                 <TrendingUp className="w-5 h-5 text-primary" />
@@ -109,12 +131,11 @@ export default function Dashboard() {
                 </div>
               </div>
             }
-            trend={{ value: 12, isPositive: true }}
             delay={100}
           />
           <StatCard
             title="CA mois"
-            value={`${mockDashboardStats.monthlyRevenue.toLocaleString()} FCFA`}
+            value={formatPrice(0, salon?.currency)}
             icon={
               <div className="relative">
                 <Banknote className="w-5 h-5 text-primary" />
@@ -127,7 +148,7 @@ export default function Dashboard() {
           />
           <StatCard
             title="Total clients"
-            value={mockDashboardStats.totalClients}
+            value={clients.length}
             icon={
               <div className="relative">
                 <Users className="w-5 h-5 text-primary" />
@@ -140,7 +161,7 @@ export default function Dashboard() {
           />
           <StatCard
             title="Nouveaux clients"
-            value={mockDashboardStats.newClientsThisMonth}
+            value="0"
             subtitle="ce mois"
             icon={
               <div className="relative">
@@ -178,7 +199,12 @@ export default function Dashboard() {
                     className="animate-fade-in-up"
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
-                    <AppointmentCard appointment={apt} />
+                    <AppointmentCard 
+                      appointment={apt} 
+                      clients={clients}
+                      employees={employees}
+                      services={services}
+                    />
                   </div>
                 ))
               ) : (
@@ -202,8 +228,8 @@ export default function Dashboard() {
             </h2>
             
             <div className="space-y-3">
-              {mockEmployees.filter(e => e.role !== 'receptionniste').map((employee, index) => {
-                const employeeAppointments = todayAppointments.filter(apt => apt.employeeId === employee.id);
+              {activeEmployees.map((employee, index) => {
+                const employeeAppointments = todayAppointments.filter(apt => apt.employee === employee.id);
                 
                 return (
                   <div 
@@ -213,17 +239,13 @@ export default function Dashboard() {
                   >
                     <div className="flex items-center gap-3">
                       <div 
-                        className="w-12 h-12 flex items-center justify-center font-bold rounded-full shadow-md group-hover:shadow-glow transition-all duration-300 group-hover:scale-110"
-                        style={{ 
-                          backgroundColor: employee.color,
-                          color: 'white'
-                        }}
+                        className="w-12 h-12 flex items-center justify-center font-bold rounded-full shadow-md group-hover:shadow-glow transition-all duration-300 group-hover:scale-110 bg-primary text-primary-foreground"
                       >
-                        {employee.firstName[0]}{employee.lastName[0]}
+                        {employee.first_name[0]}{employee.last_name[0]}
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium">{employee.firstName} {employee.lastName}</p>
-                        <p className="text-sm text-muted-foreground capitalize">{employee.role}</p>
+                        <p className="font-medium">{employee.first_name} {employee.last_name}</p>
+                        <p className="text-sm text-muted-foreground capitalize">{employee.role.toLowerCase()}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-2xl font-bold text-primary">{employeeAppointments.length}</p>

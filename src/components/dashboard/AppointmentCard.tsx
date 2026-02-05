@@ -1,47 +1,50 @@
 import { Clock, User, Scissors, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Appointment, AppointmentStatus } from '@/types';
-import { getEmployeeById, getServiceById } from '@/data/mockData';
-import { useAppointments } from '@/contexts/AppointmentsContext';
-import { AfricanStarSymbol, AdinkraSymbol } from '@/components/african-symbols/AfricanSymbols';
+import { AfricanStarSymbol } from '@/components/african-symbols/AfricanSymbols';
+import type { Client, Employee, Service, Appointment } from '@/services';
 
 interface AppointmentCardProps {
   appointment: Appointment;
   onClick?: () => void;
+  clients?: Client[];
+  employees?: Employee[];
+  services?: Service[];
 }
 
+type AppointmentStatus = 'PENDING' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW';
+
 const statusConfig: Record<AppointmentStatus, { label: string; className: string; bgGradient: string; borderColor: string }> = {
-  pending: { 
+  PENDING: { 
     label: 'En attente', 
     className: 'text-foreground',
     bgGradient: 'from-secondary/90 via-secondary/70 to-background/60',
     borderColor: 'border-border'
   },
-  confirmed: { 
+  CONFIRMED: { 
     label: 'Confirmé', 
     className: 'text-primary-foreground',
     bgGradient: 'from-primary/90 via-primary/70 to-primary/60',
     borderColor: 'border-primary/50'
   },
-  in_progress: { 
+  IN_PROGRESS: { 
     label: 'En cours', 
     className: 'text-accent-foreground',
     bgGradient: 'from-accent/90 via-accent/70 to-accent/60',
     borderColor: 'border-accent/50'
   },
-  completed: { 
+  COMPLETED: { 
     label: 'Terminé', 
     className: 'text-muted-foreground',
     bgGradient: 'from-muted/90 via-muted/70 to-muted/60',
     borderColor: 'border-border'
   },
-  cancelled: { 
+  CANCELLED: { 
     label: 'Annulé', 
     className: 'text-destructive',
     bgGradient: 'from-destructive/20 via-destructive/15 to-destructive/10',
     borderColor: 'border-destructive/30'
   },
-  no_show: { 
+  NO_SHOW: { 
     label: 'Absent', 
     className: 'text-destructive/80',
     bgGradient: 'from-destructive/15 via-destructive/10 to-destructive/5',
@@ -49,11 +52,10 @@ const statusConfig: Record<AppointmentStatus, { label: string; className: string
   },
 };
 
-export function AppointmentCard({ appointment, onClick }: AppointmentCardProps) {
-  const { getClientById } = useAppointments();
-  const client = getClientById(appointment.clientId);
-  const employee = getEmployeeById(appointment.employeeId);
-  const service = getServiceById(appointment.serviceId);
+export function AppointmentCard({ appointment, onClick, clients = [], employees = [], services = [] }: AppointmentCardProps) {
+  const client = clients.find(c => c.id === appointment.client);
+  const employee = employees.find(e => e.id === appointment.employee);
+  const service = services.find(s => s.id === appointment.service);
   const status = statusConfig[appointment.status];
 
   return (
@@ -85,7 +87,7 @@ export function AppointmentCard({ appointment, onClick }: AppointmentCardProps) 
               <Clock className="w-4 h-4 text-primary" />
             </div>
             <span className="font-mono font-bold text-lg text-foreground">
-              {appointment.startTime} - {appointment.endTime}
+              {appointment.start_time} - {appointment.end_time}
             </span>
           </div>
             
@@ -94,7 +96,7 @@ export function AppointmentCard({ appointment, onClick }: AppointmentCardProps) 
                 <User className="w-4 h-4 text-primary" />
               </div>
               <span className="font-semibold truncate text-sm text-foreground">
-                {client ? `${client.firstName} ${client.lastName}` : 'Client inconnu'}
+                {client ? `${client.first_name} ${client.last_name}` : 'Client inconnu'}
               </span>
             </div>
             
@@ -107,7 +109,7 @@ export function AppointmentCard({ appointment, onClick }: AppointmentCardProps) 
               </span>
               <span className="mx-1 text-muted-foreground">•</span>
               <span className="truncate text-muted-foreground">
-                {employee?.firstName || 'Employé inconnu'}
+                {employee?.first_name || 'Employé inconnu'}
               </span>
             </div>
           </div>
@@ -119,9 +121,9 @@ export function AppointmentCard({ appointment, onClick }: AppointmentCardProps) 
             status.className
           )}>
             <div className="flex items-center gap-1">
-              {appointment.status === 'confirmed' && <AfricanStarSymbol size={10} animated={true} color="primary" />}
-              {appointment.status === 'in_progress' && <AfricanStarSymbol size={10} animated={true} color="accent" />}
-              {appointment.status === 'pending' && <AfricanStarSymbol size={10} animated={true} color="secondary" />}
+              {appointment.status === 'CONFIRMED' && <AfricanStarSymbol size={10} animated={true} color="primary" />}
+              {appointment.status === 'IN_PROGRESS' && <AfricanStarSymbol size={10} animated={true} color="accent" />}
+              {appointment.status === 'PENDING' && <AfricanStarSymbol size={10} animated={true} color="secondary" />}
               {status.label}
             </div>
           </div>

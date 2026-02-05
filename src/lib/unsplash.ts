@@ -103,14 +103,23 @@ const SERVICE_IMAGES = [
  * @returns URL de l'image
  */
 export function getServiceImage(
-  serviceId: string,
+  serviceId: string | undefined | null,
   width: number = 800,
   height: number = 600
 ): string {
+  if (!serviceId) {
+    // Retourne une image par défaut si pas d'ID
+    return SERVICE_IMAGES[0]?.replace(/w=\d+/, `w=${width}`).replace(/h=\d+/, `h=${height}`) || '';
+  }
+  
   // Utilise l'ID du service pour déterminer l'index de l'image
-  const index = parseInt(serviceId.replace(/\D/g, '')) || 0;
+  const index = parseInt(String(serviceId).replace(/\D/g, '')) || 0;
   const imageIndex = (index - 1) % SERVICE_IMAGES.length;
   const baseUrl = SERVICE_IMAGES[imageIndex];
+  
+  if (!baseUrl) {
+    return SERVICE_IMAGES[0]?.replace(/w=\d+/, `w=${width}`).replace(/h=\d+/, `h=${height}`) || '';
+  }
   
   return baseUrl.replace(/w=\d+/, `w=${width}`).replace(/h=\d+/, `h=${height}`);
 }

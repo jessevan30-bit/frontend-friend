@@ -33,15 +33,17 @@ export function TenantThemeProvider({ children }: { children: ReactNode }) {
   const { salon } = useTenant();
   const [theme, setTheme] = useState<TenantTheme>(() => {
     // Charger le thème depuis le salon ou localStorage
-    if (salon.theme) {
+    if (salon?.theme) {
       return { ...defaultTheme, ...salon.theme };
     }
-    const saved = localStorage.getItem(`tenant_theme_${salon.id}`);
-    if (saved) {
-      try {
-        return { ...defaultTheme, ...JSON.parse(saved) };
-      } catch {
-        return defaultTheme;
+    if (salon?.id) {
+      const saved = localStorage.getItem(`tenant_theme_${salon.id}`);
+      if (saved) {
+        try {
+          return { ...defaultTheme, ...JSON.parse(saved) };
+        } catch {
+          return defaultTheme;
+        }
       }
     }
     return defaultTheme;
@@ -57,7 +59,9 @@ export function TenantThemeProvider({ children }: { children: ReactNode }) {
     setTheme(updatedTheme);
     
     // Sauvegarder dans localStorage
-    localStorage.setItem(`tenant_theme_${salon.id}`, JSON.stringify(updatedTheme));
+    if (salon?.id) {
+      localStorage.setItem(`tenant_theme_${salon.id}`, JSON.stringify(updatedTheme));
+    }
     
     // Appliquer immédiatement
     applyThemeToDocument(updatedTheme);
@@ -65,7 +69,9 @@ export function TenantThemeProvider({ children }: { children: ReactNode }) {
 
   const resetTheme = () => {
     setTheme(defaultTheme);
-    localStorage.removeItem(`tenant_theme_${salon.id}`);
+    if (salon?.id) {
+      localStorage.removeItem(`tenant_theme_${salon.id}`);
+    }
     applyThemeToDocument(defaultTheme);
   };
 
